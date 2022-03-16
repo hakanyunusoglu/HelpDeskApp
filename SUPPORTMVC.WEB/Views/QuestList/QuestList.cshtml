@@ -1,0 +1,285 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+
+@{
+    ViewBag.Title = "QuestList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    RequestManager rm = new RequestManager();
+    List<Users> userslist = rm.GetReqUser();
+    List<AttendantAssignment> atsList = rm.GetAssignedAttendants();
+    List<Requests> reqList = rm.GetRequestList();
+
+    List<Users> usrList = rm.GetReqUser();
+    int ActiveRequestCount = 0;
+    int ClosedRequestCount = 0;
+    int TotalRequestCount = 0;
+}
+
+@model IOrderedEnumerable<AttendantAssignment>
+
+@if (Session["User"] != null)
+{
+    int loggedusername = SUPPORTMVC.COMMON.App.Common.GetUserID().Value;
+    int userole = 0;
+    int compid = 0;
+
+    <div class="row">
+        <div class="col-xl-3">
+            <div class="m-portlet m-portlet--full-height  ">
+                <div class="m-portlet__body">
+                    <div class="m-card-profile">
+                        <div class="m-card-profile__title m--hide">
+                            Your Profile
+                        </div>
+                        @foreach (Users loggeduserinfo in userslist)
+                        {
+                            if (loggedusername == loggeduserinfo.UserID)
+                            {
+                                <div class="m-card-profile__pic">
+                                    <div class="m-card-profile__pic-wrapper">
+                                        <a href="@Url.Action("ProfilePage", "Profile")"><img src="~/Content/assets/img/user_img/@loggeduserinfo.ProfileImage" alt="" /></a>
+                                    </div>
+                                </div>
+                                <div class="m-card-profile__details">
+                                    <a href="@Url.Action("ProfilePage", "Profile")">
+                                        <span class="m-card-profile__name">@loggeduserinfo.UName @loggeduserinfo.USurname</span>
+                                    </a>
+                                    <a href="@Url.Action("ProfilePage", "Profile")"><span class="m-card-profile__email m-link">@loggeduserinfo.Email</span></a>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <div class="m-portlet__body-separator"></div>
+                    <div class="m-widget1 m-widget1--paddingless">
+                        <div class="m-widget1__item">
+                            <div class="row m-row--no-padding align-items-center">
+                                <div class="col">
+                                    <h3 class="m-widget1__title m--font-success">Aktif Görevlerim</h3>
+                                </div>
+                                <div class="col m--align-right">
+                                    @foreach (Users usrc in usrList)
+                                    {
+                                        if (usrc.UserID == loggedusername)
+                                        {
+                                            userole = usrc.RoleID;
+                                            compid = usrc.CompanyID;
+                                          
+                                            if (userole >= 3)
+                                            {
+                                                foreach (Requests rq in reqList)
+                                                {
+                                                    foreach (Users usr in usrList)
+                                                    {
+                                                        if (usr.UserID == loggedusername)
+                                                        {
+                                                            if (rq.RequestAttendant == usr.UserID)
+                                                            {
+                                                                ActiveRequestCount = reqList.Where(x => x.RequestAttendant == usr.UserID).Count(x => x.reqStatus.StatusID != 6 && x.reqStatus.StatusID != 7);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    <span class="m-widget1__number m--font-success">@ActiveRequestCount</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="m-widget1__item">
+                            <div class="row m-row--no-padding align-items-center">
+                                <div class="col">
+                                    <h3 class="m-widget1__title m--font-warning">Kapanan Görevlerim</h3>
+                                </div>
+                                <div class="col m--align-right">
+                                    @foreach (Users usrc in usrList)
+                                    {
+                                        if (usrc.UserID == loggedusername)
+                                        {
+                                            userole = usrc.RoleID;
+                                            compid = usrc.CompanyID;
+
+                                            if (userole >= 3)
+                                            {
+                                                foreach (Requests rq in reqList)
+                                                {
+                                                    foreach (Users usr in usrList)
+                                                    {
+                                                        if (usr.UserID == loggedusername)
+                                                        {
+                                                            if (rq.RequestAttendant == usr.UserID)
+                                                            {
+                                                              ClosedRequestCount = reqList.Where(x => x.RequestAttendant == usr.UserID).Count(x => x.reqStatus.StatusID == 7);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    <span class="m-widget1__number m--font-warning">@ClosedRequestCount</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="m-widget1__item">
+                            <div class="row m-row--no-padding align-items-center">
+                                <div class="col">
+                                    <h3 class="m-widget1__title m--font-danger">Toplam Görevlerim</h3>
+                                </div>
+                                <div class="col m--align-right">
+                                    @foreach (Users usrc in usrList)
+                                    {
+                                        if (usrc.UserID == loggedusername)
+                                        {
+                                            userole = usrc.RoleID;
+                                            compid = usrc.CompanyID;
+
+                                            if (userole >= 3)
+                                            {
+                                                foreach (Requests rq in reqList)
+                                                {
+                                                    foreach (Users usr in usrList)
+                                                    {
+                                                        if (usr.UserID == loggedusername)
+                                                        {
+                                                            if (rq.reqStatus.StatusID != 6 && rq.RequestAttendant == loggedusername)
+                                                            {
+                                                                TotalRequestCount += 1;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    <span class="m-widget1__number m--font-danger">@TotalRequestCount</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-9 col-lg-8">
+            <div class="m-portlet m-portlet--full-height m-portlet--tabs  ">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <h3 class="m-portlet__head-text col-md-12">
+                                Onay Bekleyen Görevler
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                @if (ViewData.ModelState.Keys.Any(k => ViewData.ModelState[k].Errors.Any()))
+                {
+                    <div class="form-group m-form__group row">
+                        <label class="col-lg-2 col-form-label m--font-bolder"></label>
+                        <div class="col-md-6">
+                            <div class="m-alert m-alert--icon m-alert--icon-solid m-alert--outline alert alert-danger alert-dismissible fade show" role="alert" id="alertmsg">
+                                <div class="m-alert__icon">
+                                    <i class="flaticon-exclamation-1"></i>
+                                    <span></span>
+                                </div>
+                                <div class="m-alert__text">
+                                    @Html.ValidationSummary(false)
+
+                                </div>
+                                <div class="m-alert__close">
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                <div class="m-portlet m-portlet--full-height ">
+                    <div class="m-portlet__body">
+                        <!--begin::Content-->
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="m_widget5_tab1_content" aria-expanded="true">
+                                <!--begin::m-widget5-->
+                                <div class="m-widget5">
+                                    @foreach (AttendantAssignment ats in atsList)
+                                    {
+                                        if (ats.UserID == loggedusername && ats.AssignmentStatus == 0)
+                                        {
+
+                                            <div class="m-widget5__item">
+
+                                                <div class="m-widget5__content">
+                                                    <div class="m-widget5__pic">
+                                                        <a href="~/RequestList/RequestDetails/@ats.RequestID">
+                                                            <img class="m-widget7__img" style="height: 6rem; width: 6rem" src="~/Content/assets/app/media/img/icons/warning.svg" title="Detayları Görüntüle">
+                                                        </a>
+                                                    </div>
+                                                    @foreach (Requests rqs in reqList)
+                                                    {
+                                                        if (ats.RequestID == rqs.RequestID)
+                                                        {
+                                                            <div class="m-widget5__section">
+                                                                <h4 class="m-widget5__title">
+                                                                    @rqs.reqCompany.CompanyName
+                                                                </h4>
+                                                                <span class="m-widget5__desc">
+                                                                    @rqs.reqType.RequestTypeTitle
+                                                                </span>
+                                                                <div class="m-widget5__info">
+                                                                    <span class="m-widget5__author">
+                                                                        Talep Sahibi:&nbsp;
+                                                                    </span>
+                                                                    <span class="m-widget5__info-label m--font-bolder">
+                                                                        @rqs.reqUser.UName @rqs.reqUser.USurname &nbsp;-&nbsp;
+                                                                    </span>
+                                                                    <span class="m-widget5__info">
+                                                                        Talep Tarihi:&nbsp;
+                                                                    </span>
+                                                                    <span class="m-widget5__info-label m--font-bolder">
+                                                                        @rqs.RequestDate
+                                                                    </span>
+                                                                    <br />
+                                                                    <span class="m-widget5__info">
+                                                                        Açıklama:&nbsp;<br />
+                                                                    </span>
+                                                                    <span class="m-widget5__info-label m--font-bolder">
+                                                                        @if (rqs.RequestDescription.Length > 60)
+                                                                        {
+                                                                            <span title="@rqs.RequestDescription">@rqs.RequestDescription.Substring(0, 60) ...</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span title="@rqs.RequestDescription">@rqs.RequestDescription</span>
+                                                                        }
+
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    }
+                                                </div>
+                                                <div class="m-widget5__content">
+                                                    <div class="m-widget5__stats1">
+                                                        <span class="m-widget5__sales">
+                                                            <button type="submit" class="btn btn-success m-btn m-btn--custom confirmid" data-confirmid="@ats.RequestID" id="ConfirmButton" onclick="AssignmentAttendantConfirm(this,'AssignmentAttendantConfirm');">Onay</button>
+                                                        </span>
+                                                    </div>
+                                                    <div class="m-widget5__stats2">
+                                                        <span class="m-widget5__votes">
+                                                            <button type="submit" class="btn btn-danger m-btn m-btn--custom cancelid" data-cancelid="@ats.RequestID" id="CancelButton" onclick="AssignmentAttendantCancel(this,'AssignmentAttendantCancel');">Red</button>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<script src="~/TODO_JS/AssignmentAttendant.js"></script>
+

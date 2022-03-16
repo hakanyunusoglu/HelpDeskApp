@@ -1,0 +1,571 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@model Requests
+@{
+    ViewBag.Title = "RequestDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    RequestManager rm = new RequestManager();
+
+    List<Users> uslist = rm.GetReqUser();
+    List<Requests> rqList = rm.GetRequestList();
+    List<CommentStatus> csList = rm.GetCommentStatus();
+    List<RequestComments> reqcomment = rm.GetRequestComments().OrderByDescending(x => x.CommentID).ToList();
+    List<RequestDocuments> reqdocs = rm.GetCommentDocuments();
+    List < AttendantAssignment > atsList = rm.GetAssignedAttendants();
+
+    double totaltime = 0;
+    int userole = 0;
+    int userdocument = 0;
+    int authdocument = 0;
+    string comdate = "";
+    string comdateanswer = "";
+    string com = "";
+    string comanswer = "";
+
+}
+@if (Session["User"] != null)
+{
+    int loggeduser = SUPPORTMVC.COMMON.App.Common.GetUserID().Value;
+
+    using (Html.BeginForm())
+    {
+        @Html.HiddenFor(model => model.RequestID)
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="m-portlet m-portlet--creative m-portlet--first m-portlet--bordered-semi">
+                    <div class="m-portlet__head">
+                        <div class="m-portlet__head-caption">
+                            <div class="m-portlet__head-title">
+                                <div class="m-portlet__head-label m-portlet__head-label--primary" style="width:14rem">
+                                    <span>Talep Bilgileri</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__body" style="margin-top: -4rem">
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">T.No:</label>
+                            <div class="col-md-3">
+                                @Html.TextBoxFor(model => model.RequestNumber, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+
+                            <label class="col-lg-1 col-form-label m--font-bolder">Tür:</label>
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.reqType.RequestTypeTitle, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">Öncelik:</label>
+                            <div class="col-md-3">
+                                @Html.TextBoxFor(model => model.reqPriority.PriorityTitle, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly", value = Model.reqPriority.PriorityID })
+
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">Görevli:</label>
+                            <div class="col-md-5">
+                                @foreach (Users usr in uslist)
+                                {
+                                    if (usr.UserID == Model.RequestAttendant)
+                                    {
+                                        string requestattend;
+                                        requestattend = usr.UName + " " + usr.USurname;
+
+                                        @Html.TextBoxFor(model => requestattend, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                                    }
+                                }
+
+                            </div>
+                            <label class="col-lg-2 m--font-bolder">Talep Durumu:</label>
+                            <div class="col-md-4">
+                                @if (Model.reqStatus.StatusID == 1)
+                                {
+                                    <span class="m-badge m-badge--accent m-badge--wide" style="color: white; font-size: 1.2rem">&nbsp; @Html.DisplayFor(model => model.reqStatus.StatusTitle)&nbsp; </span>
+                                }
+                                else if (Model.reqStatus.StatusID == 2)
+                                {
+                                    <span class="m-badge m-badge--success m-badge--wide" style="color: white; font-size: 1.2rem">&nbsp; @Html.DisplayFor(model => model.reqStatus.StatusTitle)&nbsp; </span>
+                                }
+                                else if (Model.reqStatus.StatusID == 3)
+                                {
+                                    <span class="m-badge m-badge--primary m-badge--wide" style="color: white; font-size: 1.2rem">&nbsp; @Html.DisplayFor(model => model.reqStatus.StatusTitle)&nbsp; </span>
+                                }
+                                else if (Model.reqStatus.StatusID == 4)
+                                {
+                                    <span class="m-badge m-badge--info m-badge--wide" style="color: white; font-size: 1.2rem">&nbsp; @Html.DisplayFor(model => model.reqStatus.StatusTitle)&nbsp; </span>
+                                }
+                                else if (Model.reqStatus.StatusID == 5)
+                                {
+                                    <span class="m-badge m-badge--warning m-badge--wide" style="color: white; font-size: 1.2rem">&nbsp; @Html.DisplayFor(model => model.reqStatus.StatusTitle)&nbsp; </span>
+                                }
+                                else if (Model.reqStatus.StatusID == 6)
+                                {
+                                    <span class="m-badge m-badge--danger m-badge--wide" style="color: white; font-size: 1.2rem">&nbsp; @Html.DisplayFor(model => model.reqStatus.StatusTitle)&nbsp; </span>
+                                }
+                                else if (Model.reqStatus.StatusID == 7)
+                                {
+                                    <span class="m-badge m-badge--metal m-badge--wide" style="color: white; font-size: 1.2rem">&nbsp; @Html.DisplayFor(model => model.reqStatus.StatusTitle)&nbsp; </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="col-lg-6">
+
+                <div class="m-portlet m-portlet--creative m-portlet--first m-portlet--bordered-semi">
+                    <div class="m-portlet__head">
+                        <div class="m-portlet__head-caption">
+                            <div class="m-portlet__head-title">
+                                <h3 class="m-portlet__head-text"></h3>
+                                <h2 class="m-portlet__head-label m-portlet__head-label--warning" style="width:14rem">
+                                    <span>Firma Bilgileri</span>
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__body" style="margin-top: -4rem">
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-2 col-form-label m--font-bolder">Firma Kodu:</label>
+                            <div class="col-md-3">
+                                @Html.TextBoxFor(model => model.reqCompany.CompanyCode, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">T.Sahibi:</label>
+                            <div class="col-md-5">
+                                @foreach (Users usr in uslist)
+                                {
+                                    if (usr.UserID == Model.reqUser.UserID)
+                                    {
+                                        string requestowner;
+                                        requestowner = usr.UName + " " + usr.USurname;
+
+                                        @Html.TextBoxFor(model => requestowner, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                                    }
+                                }
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-2 col-form-label m--font-bolder">Firma Adı:</label>
+                            <div class="col-md-9">
+                                @Html.TextBoxFor(model => model.reqCompany.CompanyName, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-2 col-form-label m--font-bolder">E-Mail:</label>
+                            <div class="col-md-7">
+                                @Html.TextBoxFor(model => model.reqUser.Email, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="m-portlet">
+            @*<div class="m-portlet__head">
+                <div class="m-portlet__head-caption col-md-5">
+                    <div class="m-portlet__head-title col-md-4">
+                        <span><i class="fa fa-folder-open fa-2x"> </i></span>&nbsp;
+                        <h3 class="m-portlet__head-text">
+                            Talep Açıklaması
+                        </h3>
+                    </div>
+                </div>
+            </div>*@
+                <div class="m-portlet m-portlet--head-sm" m-portlet="true" id="m_portlet_tools_3">
+                    <div class="m-portlet__head">
+                        <div class="m-portlet__head-caption col-xl-8">
+                            <div class="m-portlet__head-title">
+                                <span class="m-portlet__head-icon">
+                                    <i class="flaticon-list-1"></i>
+                                </span>
+                                <h3 class="m-portlet__head-text">
+                                    Talep Açıklaması
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="m-portlet__head-tools">
+                            <ul class="m-portlet__nav">
+                                <li class="m-portlet__nav-item">
+                                    <a href="#" m-portlet-tool="toggle" class="m-portlet__nav-link m-portlet__nav-link--icon"><i class="la la-angle-down"></i></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="m-portlet__body">
+
+                        <div class="form-group m-form__group row align-items-center">
+                            <div class="col-md-12">
+                                <div class="m-form__control">
+                                        @Html.TextAreaFor(model => model.RequestDescription, new { @class = "form-control m--font-boldest2", @readonly = "readonly", rows="10", id= "m_autosize_1_reqdesc" })
+                               
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+           
+        </div>
+        int findocument = reqdocs.Count(x => x.docReq.RequestID == Model.RequestID);
+        if (findocument == 0)
+        {
+
+        }
+        else
+        {
+            <div class="m-portlet">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption col-md-5">
+                        <div class="m-portlet__head-title col-md-4">
+                            <span><i class="fa fa-folder-open fa-2x"> </i></span>&nbsp;
+                            <h3 class="m-portlet__head-text">
+                                Eklenen Dosyalar
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-portlet__body">
+                    <span class="m--regular-font-size-lg1"><i class="fa fa-plus"></i>Kullanıcı Dosyaları</span>
+                    <ul>
+                        @foreach (RequestDocuments rd in reqdocs)
+                        {
+                            foreach (Users usr in uslist)
+                            {
+                                if (rd.docUser.UserID == usr.UserID)
+                                {
+                                    userole = usr.RoleID;
+
+                                    if (userole <= 2)
+                                    {
+                                        if (rd.docReq.RequestID == Model.RequestID)
+                                        {
+                                            userdocument += 1;
+                                            <li class="m--regular-font-size-lg1"><a href="~/Content/assets/img/request_img/request_id_@Model.RequestID/@rd.DocumentTitleChanged">@rd.DocumentTitle (@rd.AddedDate @rd.AddedHour) - @usr.UName @usr.USurname</a></li>
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                        @if (String.IsNullOrEmpty(userdocument.ToString()) || userdocument == 0)
+                        {
+                            <span class="m--font-bold m--regular-font-size-lg2">Eklenmiş dosya bulunamadı!</span>
+                        }
+                    </ul>
+                    <span class="m--regular-font-size-lg1"><i class="fa fa-plus"></i>Yetkili Dosyaları</span>
+                    <ul>
+                        @foreach (RequestDocuments rds in reqdocs)
+                        {
+                            foreach (Users usr in uslist)
+                            {
+                                if (rds.docUser.UserID == usr.UserID)
+                                {
+                                    userole = usr.RoleID;
+                                    if (userole >= 3)
+                                    {
+                                        if (rds.docReq.RequestID == Model.RequestID)
+                                        {
+                                            authdocument += 1;
+                                            <li class="m--regular-font-size-lg1"><a href="~/Content/assets/img/request_img/request_id_@Model.RequestID/@rds.DocumentTitleChanged">@rds.DocumentTitle (@rds.AddedDate @rds.AddedHour) - @usr.UName @usr.USurname</a></li>
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        @if (String.IsNullOrEmpty(authdocument.ToString()) || authdocument == 0)
+                        {
+                            <span class="m--font-bold m--regular-font-size-lg2">Eklenmiş dosya bulunamadı!</span>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+
+        <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title col-md-12">
+                    <span class="m-portlet__head-icon">
+                        <i class="flaticon-chat-1"></i>
+                    </span>
+                    <div class="col-md-4">
+                        <h3 class="m-portlet__head-text">
+                            TALEP DETAYLARI
+                        </h3>
+                    </div>
+
+                    @if (Model.reqStatus.StatusID != 6 && Model.reqStatus.StatusID != 7)
+                    {
+                        @Html.HiddenFor(x => Model.RequestID)
+                        if (Model.RequestAttendant == loggeduser || Model.reqUser.UserID == loggeduser || userole > 3)
+                        {
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-info m--font-bolder" data-toggle="modal" data-target="#m_modal_4_comment" data-requests-id="@Model.RequestID">Sorun Bildir</button>
+                            </div>
+                        }
+                    }
+
+
+                    @foreach (Users usr in uslist)
+                    {
+                        if (usr.UserID == loggeduser)
+                        {
+                            userole = usr.RoleID;
+                            if ((Model.RequestAttendant == loggeduser || userole > 3) && Model.reqStatus.StatusID != 5 && Model.reqStatus.StatusID != 6 && Model.reqStatus.StatusID != 7)
+                            {<div class="col-md-3">
+                                    <a href="#" class="btn btn-outline-info m--font-bolder" data-toggle="modal" data-target="#m_modal_4" data-request-id="@Model.RequestID">
+                                        <i class="fa fa-window-close">&nbsp;</i>
+                                        Talebi Kapat
+                                    </a>
+                                </div>
+                            }
+                        }
+                    }
+
+                    <div class="col-md-4">
+                        <a href="@Url.Action("RequestList", "RequestList")" class="btn btn-outline-info m--font-bolder">
+                            <i class="fa fa-arrow-circle-left">&nbsp;</i>
+                            Aktif Talep Listesi
+                        </a>
+                    </div>
+                    @if (Model.reqStatus.StatusID == 6 || Model.reqStatus.StatusID == 7)
+                    {
+                        <div class="col-md-4">
+                            <a href="@Url.Action("ClosedRequestList", "RequestList")" class="btn btn-outline-info m--font-bolder">
+                                <i class="fa fa-arrow-circle-left">&nbsp;</i>
+                                Kapanan Talep Listesi
+                            </a>
+                        </div>
+                    }
+                    @foreach (AttendantAssignment ats in atsList)
+                    {
+                        if (ats.UserID == loggeduser && ats.AssignmentStatus == 0 && ats.RequestID == Model.RequestID)
+                        {
+                            <div class="col-md-12"></div>
+                            <div class="col-md-3"></div>
+                            <div class="col-md-5">
+                                <button type="submit" class="btn btn-success m-btn m-btn--custom confirmid" data-confirmid="@Model.RequestID" id="ConfirmButton" onclick="AssignmentAttendantConfirm(this, 'AssignmentAttendantConfirm');">Onay</button>
+                                <button type="submit" class="btn btn-danger m-btn m-btn--custom cancelid" data-cancelid="@Model.RequestID" id="CancelButton" onclick="AssignmentAttendantCancel(this, 'AssignmentAttendantCancel');">Red</button>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+
+            <div class="m-portlet__body">
+                <label class="m--font-bolder m--font-metal">Talep Açılış Tarihi:</label>
+                <span class="m-badge m-badge--metal m-badge--wide m--font-boldest" style="font-size: 100%; margin-left: 5px; margin-top: -4px">@Html.DisplayFor(model => model.RequestDate)</span>
+                @foreach (Requests rq in rqList)
+                {
+                    if (Model.RequestID == rq.RequestID)
+                    {
+                        foreach (CommentStatus cs in csList)
+                        {
+                            if (rq.CommentStatusID == cs.CommentStatusID)
+                            {
+                                <span class="col-sm-1"></span>
+                                if (rq.CommentStatusID == 1)
+                                {
+                                    <span class="m--bg-accent m--font-bolder" style="color: white">&nbsp; @Html.DisplayFor(model => cs.CommentStatusTitle)&nbsp; </span>
+                                }
+                                else if (rq.CommentStatusID == 2)
+                                {
+                                    <span class="m--bg-brand m--font-bolder" style="color: white">&nbsp; @Html.DisplayFor(model => cs.CommentStatusTitle)&nbsp; </span>
+                                }
+                                else if (rq.CommentStatusID == 3)
+                                {
+                                    <span class="bg-warning m--font-bolder" style="color: black">&nbsp; @Html.DisplayFor(model => cs.CommentStatusTitle)&nbsp; </span>
+                                }
+                                else if (rq.CommentStatusID == 4)
+                                {
+                                    <span class="bg-success m--font-bolder" style="color: white">&nbsp; @Html.DisplayFor(model => cs.CommentStatusTitle)&nbsp; </span>
+                                }
+                                else
+                                {
+                                    <span class="m--bg-metal m--font-bolder" style="color: black; font-size: 1.1rem">&nbsp; @Html.DisplayFor(model => cs.CommentStatusTitle)&nbsp; </span>
+                                }
+                            }
+                        }
+                        foreach (RequestComments rcm in reqcomment)
+                        {
+                            if (rcm.comReq.RequestID == rq.RequestID)
+                            {
+                                totaltime += rcm.CommentTotalTime;
+                            }
+                        }
+                    }
+                }
+                <span class="col-sm-1"></span>
+                <span>Toplam işlem süresi:</span>
+                <span class="m--font-bolder" style="font-size: 1.2rem">&nbsp; @Html.DisplayFor(model => totaltime)&nbsp; </span>
+                <span>Dakika</span>
+
+                <hr />
+                <div class="m-widget3">
+                    <div class="m-widget3__item">
+                        @foreach (RequestComments rqc in reqcomment)
+                        {
+                            if (rqc.comReq.RequestID == Model.RequestID)
+                            {
+                                comdate = rqc.CommentDateTime;
+                                com = rqc.CommentText;
+
+                                int comid = rqc.CommentID;
+                                if (rqc.ParentID == 0)
+                                {
+                                    foreach (Users usr in uslist)
+                                    {
+                                        if (usr.UserID == rqc.comUser.UserID)
+                                        {
+                                            string requestowner;
+                                            string usercomp = usr.Company.CompanyName;
+
+                                            requestowner = usr.UName + " " + usr.USurname;
+
+
+                                            <div class="m-widget3__header">
+                                                <div class="m-widget3__user-img">
+                                                    <img class="m-widget3__img" src="~/Content/assets/img/user_img/@usr.ProfileImage" alt="">
+                                                </div>
+                                                <div class="m-widget3__info">
+                                                    <span class="m-widget3__username" style="font-size: 1.1rem">
+
+                                                        @Html.DisplayFor(model => requestowner) <span> - </span> @Html.DisplayFor(model => usercomp)
+
+                                                    </span>
+                                                    <br />
+                                                    <span class="m-widget3__time" style="font-size: 1rem">
+                                                        @Html.DisplayFor(model => comdate)
+
+                                                    </span>
+                                                    <br />
+                                                    <br />
+                                                </div>
+                                            </div>
+                                            <div class="m-widget3__body">
+                                                <p class="m-widget3__text" style="font-size: 1.1rem">
+                                                    <span>@Html.DisplayFor(model => com)</span>
+                                                </p>
+                                                @if (rqc.comUser.UserID != SUPPORTMVC.COMMON.App.Common.GetUserID().Value && (Model.CommentStatusID != 4 && Model.CommentStatusID != 5))
+                                                {
+                                                    <span class="col-md-12"></span>
+                                                    <span class="col-md-12"></span>
+                                                    <span class="col-md-12"></span>
+                                                    <span class="col-md-12"></span>
+                                                    <span class="col-md-12"></span>
+                                                    <span class="col-md-12"></span>
+                                                    <span><a href="#" class="m--font-bolder" data-toggle="modal" data-target="#m_modal_4_comment_answer" data-comment-id="@comid">Cevapla</a></span>
+                                                }
+                                            </div>
+                                            <hr />
+                                        }
+                                    }
+                                }
+
+                                foreach (RequestComments rca in reqcomment)
+                                {
+                                    if (rqc.CommentID == rca.ParentID)
+                                    {
+                                        foreach (Users usrs in uslist)
+                                        {
+                                            if (rca.comUser.UserID == usrs.UserID)
+                                            {
+                                                string commentanswerowner = usrs.UName + " " + usrs.USurname;
+
+                                                <div class="m-widget3__body col-md-12" style="background-color: #f5f5f5">
+                                                    <div class="m-widget3__header">
+                                                        <div class="m-widget3__user-img">
+                                                            <img class="m-widget3__img" src="~/Content/assets/img/user_img/@usrs.ProfileImage" alt="">
+                                                        </div>
+                                                        <div class="m-widget3__info">
+                                                            <span class="m-widget3__username" style="font-size: 1.1rem">
+                                                                @Html.DisplayFor(model => commentanswerowner) <span> - </span> @Html.DisplayFor(model => usrs.Company.CompanyName)
+                                                            </span>
+                                                            <br />
+                                                            <span class="m-widget3__time" style="font-size: 1rem">
+                                                                @Html.DisplayFor(model => rca.CommentDateTime)
+
+                                                            </span>
+                                                            <br />
+                                                            <br />
+                                                            <div class="m-widget3__body col-md-12">
+                                                                <span class="m-widget3__text" style="font-size: 1.1rem">
+                                                                    @Html.DisplayFor(model => rca.CommentText)
+
+                                                                </span>
+                                                            </div>
+                                                            <br />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <hr />
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="modal fade" id="m_modal_4" name="m_modal_4" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header" id="m_modal_4_header">
+                                <h5 class="modal-title" id="exampleModalLabel">Talebi Kapat</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="false">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" id="m_modal_4_body">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="m_modal_4_comment" name="m_modal_4_comment" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header" id="m_modal_4_header">
+                                <h5 class="modal-title" id="exampleModalLabel">Yorum Ekle</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="false">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" id="m_modal_4_comment_body">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="m_modal_4_comment_answer" name="m_modal_4_comment_answer" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header" id="m_modal_4_header_anser">
+                                <h5 class="modal-title" id="exampleModalLabel">Yorum Ekle</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="false">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" id="m_modal_4_comment_answer_body">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+<script src="~/TODO_JS/AssignmentAttendant.js"></script>
+<script src="~/TODO_JS/RequestUpdate.js"></script>
+<script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/autosize.js" type="text/javascript"></script>
+

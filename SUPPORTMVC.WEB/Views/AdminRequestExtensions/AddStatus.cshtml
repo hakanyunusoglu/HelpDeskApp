@@ -1,0 +1,78 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@model RequestStatus
+@{
+    ViewBag.Title = "AddStatus";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    RequestManager rm = new RequestManager();
+    List<RequestStatus> rsl = rm.GetReqStatus();
+}
+<div class="m-portlet">
+    <div class="m-portlet__head">
+        <div class="m-portlet__head-caption">
+            <div class="m-portlet__head-title">
+                <h3 class="m-portlet__head-text col-md-12">
+                    Talep Durumu Ekle
+                </h3>
+            </div>
+        </div>
+    </div>
+    @if (ViewData.ModelState.Keys.Any(k => ViewData.ModelState[k].Errors.Any()))
+    {
+        <div class="m-portlet__body">
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder"></label>
+                <div class="col-md-4">
+                    <div class="m-alert m-alert--icon m-alert--icon-solid m-alert--outline alert alert-danger alert-dismissible fade show" role="alert" id="alertmsg">
+                        <div class="m-alert__icon">
+                            <i class="flaticon-exclamation-1"></i>
+                            <span></span>
+                        </div>
+                        <div class="m-alert__text">
+                            @Html.ValidationSummary(false)
+                        </div>
+                        <div class="m-alert__close">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    @using (Html.BeginForm("AddStatus", "AdminRequestExtensions", FormMethod.Post, new {@class = "m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed" }))
+    { 
+        <div class="m-portlet__body">
+            <div class="form-group m-form__group row">
+                <label class="col-lg-1 col-form-label m--font-bolder">Durum Başlığı:</label>
+                <div class="col-md-4">
+                    <input class="form-control m-input m--font-boldest2" type="text" name="StatusTitle" />
+                </div>
+                <label class="col-lg-1 col-form-label m--font-bolder">Kayıtlı Durumlar:</label>
+                <div class="col-md-3">
+                    <div class="m-demo">
+                        <div class="m-demo__preview">
+                            <ul class="m-nav">
+                                @foreach (RequestStatus rs in rsl)
+                                {
+                                    <li class="m-nav__item">
+                                        <span class="m-nav__link-text"><i class="fa fa-square"></i><span class="m--font-bolder m--icon-font-size-sm3"> @rs.StatusTitle </span></span>
+                                    </li>
+                                    }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="m-portlet__foot m-portlet__no-border m-portlet__foot--fit">
+                <div class="m-form__actions ">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <button type="submit" class="btn btn-info m--font-bolder" id="btnfirmakayit">Kaydet</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

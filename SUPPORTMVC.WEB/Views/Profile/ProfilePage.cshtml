@@ -1,0 +1,376 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@{
+    ViewBag.Title = "ProfilePage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    UserManager um = new UserManager();
+    RequestManager rm = new RequestManager();
+
+    List<AttendantAssignment> atsList = rm.GetAssignedAttendants();
+    List<Requests> reqList = rm.GetRequestList();
+
+    List<Users> usrList = rm.GetReqUser();
+    int ActiveRequestCount = 0;
+    int ClosedRequestCount = 0;
+    int TotalRequestCount = 0;
+
+}
+@model Users
+@if (Session["User"] != null)
+{
+    int loggedusername = SUPPORTMVC.COMMON.App.Common.GetUserID().Value;
+    int userole = 0;
+    int compid = 0;
+
+    <script>
+        function sifremigoster() {
+            var element = document.getElementById('Password');
+            element.type = (element.type == 'password' ? 'text' : 'password');
+        }
+    </script>
+    <div class="row">
+        <div class="col-xl-3 col-lg-4">
+            <div class="m-portlet m-portlet--full-height  ">
+                <div class="m-portlet__body">
+                    <div class="m-card-profile">
+                        <div class="m-card-profile__title m--hide">
+                            Your Profile
+                        </div>
+                            @foreach (Users loggeduserinfo in usrList)
+                            {
+                                if (loggedusername == loggeduserinfo.UserID)
+                                {
+                                    
+                                    <div class="m-card-profile__pic">
+                                        <div class="m-card-profile__pic-wrapper">
+                                            <img src="~/Content/assets/img/user_img/@loggeduserinfo.ProfileImage" alt=""/>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="m-card-profile__details">
+                                        <span class="m-card-profile__name">@loggeduserinfo.UName @loggeduserinfo.USurname</span>
+                                        <span class="m-card-profile__email m-link">@loggeduserinfo.Email</span>
+                                    </div>
+
+                                }
+                            }
+                    </div>
+
+                    <div class="m-portlet__body-separator"></div>
+                    <div class="m-widget1 m-widget1--paddingless">
+                        @*<div class="m-widget1__item">
+            <div class="row m-row--no-padding align-items-center">
+                <div class="col">
+                    <h3 class="m-widget1__title m--font-warning">Kalan Kontör Dakika</h3>
+                </div>
+                <div class="col m--align-right">
+                    <span class="m-widget1__number m--font-warning">15</span>
+                </div>
+            </div>
+        </div>*@
+                        <div class="m-widget1__item">
+                            <div class="row m-row--no-padding align-items-center">
+                                <div class="col">
+                                    <h3 class="m-widget1__title m--font-success">Aktif Görevlerim</h3>
+                                </div>
+                                <div class="col m--align-right">
+                                    @foreach (Users usrc in usrList)
+                                    {
+                                        if (usrc.UserID == loggedusername)
+                                        {
+                                            userole = usrc.RoleID;
+                                            compid = usrc.CompanyID;
+
+                                            if (userole >= 3)
+                                            {
+                                                foreach (Requests rq in reqList)
+                                                {
+                                                    foreach (Users usr in usrList)
+                                                    {
+                                                        if (usr.UserID == loggedusername)
+                                                        {
+                                                            if (rq.RequestAttendant == usr.UserID)
+                                                            {
+                                                                ActiveRequestCount = reqList.Where(x => x.RequestAttendant == usr.UserID).Count(x => x.reqStatus.StatusID != 6 && x.reqStatus.StatusID != 7);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    <span class="m-widget1__number m--font-success">@ActiveRequestCount</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="m-widget1__item">
+                            <div class="row m-row--no-padding align-items-center">
+                                <div class="col">
+                                    <h3 class="m-widget1__title m--font-warning">Kapanan Görevlerim</h3>
+                                </div>
+                                <div class="col m--align-right">
+                                    @foreach (Users usrc in usrList)
+                                    {
+                                        if (usrc.UserID == loggedusername)
+                                        {
+                                            userole = usrc.RoleID;
+                                            compid = usrc.CompanyID;
+
+                                            if (userole >= 3)
+                                            {
+                                                foreach (Requests rq in reqList)
+                                                {
+                                                    foreach (Users usr in usrList)
+                                                    {
+                                                        if (usr.UserID == loggedusername)
+                                                        {
+                                                            if (rq.RequestAttendant == usr.UserID)
+                                                            {
+                                                                ClosedRequestCount = reqList.Where(x => x.RequestAttendant == usr.UserID).Count(x => x.reqStatus.StatusID == 7);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    <span class="m-widget1__number m--font-warning">@ClosedRequestCount</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="m-widget1__item">
+                            <div class="row m-row--no-padding align-items-center">
+                                <div class="col">
+                                    <h3 class="m-widget1__title m--font-danger">Toplam Görevlerim</h3>
+                                </div>
+                                <div class="col m--align-right">
+                                    @foreach (Users usrc in usrList)
+                                    {
+                                        if (usrc.UserID == loggedusername)
+                                        {
+                                            userole = usrc.RoleID;
+                                            compid = usrc.CompanyID;
+
+                                            if (userole >= 3)
+                                            {
+                                                foreach (Requests rq in reqList)
+                                                {
+                                                    foreach (Users usr in usrList)
+                                                    {
+                                                        if (usr.UserID == loggedusername)
+                                                        {
+                                                            if (rq.reqStatus.StatusID != 6 && rq.RequestAttendant == loggedusername)
+                                                            {
+                                                                TotalRequestCount += 1;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    <span class="m-widget1__number m--font-danger">@TotalRequestCount</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-9 col-lg-8">
+            <div class="m-portlet m-portlet--full-height m-portlet--tabs  ">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <h3 class="m-portlet__head-text col-md-12">
+                                Profil Detayları
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                @if (ViewData.ModelState.Keys.Any(k => ViewData.ModelState[k].Errors.Any()))
+                {
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-2 col-form-label m--font-bolder"></label>
+                            <div class="col-md-6">
+                                <div class="m-alert m-alert--icon m-alert--icon-solid m-alert--outline alert alert-danger alert-dismissible fade show" role="alert" id="alertmsg">
+                                    <div class="m-alert__icon">
+                                        <i class="flaticon-exclamation-1"></i>
+                                        <span></span>
+                                    </div>
+                                    <div class="m-alert__text">
+                                        @Html.ValidationSummary(false)
+                                      
+                                    </div>
+                                    <div class="m-alert__close">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                }
+            @using (Html.BeginForm("ProfilePage", "Profile", FormMethod.Post, new {enctype = "multipart/form-data"}))
+            {
+                        <div class="m-portlet__body">
+                                
+                                @foreach (Users loggeduserinfo in usrList)
+                                {
+                                    if (loggedusername == loggeduserinfo.UserID)
+                                    {
+                                        @Html.HiddenFor(model => model.UserID)
+
+                                        userole = loggeduserinfo.RoleID;
+                                        if (userole >= 3)
+                                        {
+
+                                            <div class="form-group m-form__group row">
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Ad:</label>
+                                                <div class="col-md-3">
+                                                    <input type='text' class="form-control m--font-boldest2" name="UName"  value="@loggeduserinfo.UName" />
+                                                </div>
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Soyad:</label>
+                                                <div class="col-md-3">
+                                                    <input type="text" class="form-control m--font-boldest2" name="USurname"  value="@loggeduserinfo.USurname" />
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group m-form__group row">
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Kul. Adı:</label>
+                                                <div class="col-md-3">
+                                                    <input type="text" class="form-control m--font-boldest2" name="Username"  value="@loggeduserinfo.Username" />
+                                                </div>
+                                                <label class="col-lg-1 col-form-label m--font-bolder">Kul. Tipi:</label>
+                                                <div class="col-md-3">
+                                                    @if (loggeduserinfo.RoleID == 2)
+                                                    {
+                                                        <input type="text" class="form-control m--font-boldest2" id="txtprofilkullanicitipi" title="Değiştirilemez!"  readonly="readonly" value="FİRMA YETKİLİSİ" />
+                                                    }
+                                                    else if (loggeduserinfo.RoleID == 3)
+                                                    {
+                                                        <input type="text" class="form-control m--font-boldest2" id="txtprofilkullanicitipi" title="Değiştirilemez!"  readonly="readonly" value="HBS KULLANICI" />
+                                                    }
+                                                    else if (loggeduserinfo.RoleID == 4)
+                                                    {
+                                                        <input type="text" class="form-control m--font-boldest2" id="txtprofilkullanicitipi" title="Değiştirilemez!"  readonly="readonly" value="HBS YETKİLİSİ" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <input type="text" class="form-control m--font-boldest2" id="txtprofilkullanicitipi" title="Değiştirilemez!"  readonly="readonly" value="STANDART KULLANICI" />
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div class="form-group m-form__group row">
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >E-Mail:</label>
+                                                <div class="col-md-3">
+                                                    <input type="email" class="form-control m--font-boldest2" id="Email" name="Email" value="@loggeduserinfo.Email" />
+                                                </div>
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Firma:</label>
+                                                <div class="col-md-6">
+                                                    <input type="text" class="form-control m--font-boldest2" id="txtprofilfirma" disabled value="@loggeduserinfo.Company.CompanyName" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group m-form__group row">
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Şifre:</label>
+                                                <div class="col-md-3">
+                                                    <div class="input-group">
+                                                        <input type="password" class="form-control m-input m--font-boldest2" id="Password" name="Password" value="@loggeduserinfo.Password" />
+                                                        <div class="input-group-prepend" id="profilsifregoster" onclick="sifremigoster()"><span class="input-group-text"><i class="la la-eye"></i></span></div>
+                                                    </div>
+                                                </div>
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Profil Resmi:</label>
+                                                <div class="custom-file col-md-5">
+                                                    <input type="file" class="custom-file-input m--font-boldest2" name="ProfileImageFile" id="ProfileImageFile" />
+                                                    <label class="custom-file-label" for="customFile"></label>
+                                                    <span class="m-form__help m--font-danger" style="font-size: 12px"><i class="la la-info-circle"></i> Lütfen jpg, jpeg yada png uzantılı resim kullanın!</span>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="form-group m-form__group row">
+                                                    <label class="col-sm-1 col-form-label m--font-bolder">Ad:</label>
+                                                    <div class="col-md-3">
+                                                        <input type='text' class="form-control m--font-boldest2" name="UName" readonly="readonly" title="Değiştirilemez!" value="@loggeduserinfo.UName"/>
+                                                    </div>
+                                                    <label class="col-lg-1 col-form-label m--font-bolder">Soyad:</label>
+                                                    <div class="col-md-3">
+                                                        <input type="text" class="form-control m--font-boldest2" name="USurname" title="Değiştirilemez!"  readonly="readonly" value="@loggeduserinfo.USurname"/>
+                                                    </div>
+                                            </div>
+
+                                            <div class="form-group m-form__group row">
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Kul. Adı:</label>
+                                                <div class="col-md-3">
+                                                    <input type="text" class="form-control m--font-boldest2" name="Username" title="Değiştirilemez!"  readonly="readonly" value="@loggeduserinfo.Username" />
+                                                </div>
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Kul. Tipi:</label>
+                                                <div class="col-md-3">
+                                                    @if (loggeduserinfo.RoleID == 2)
+                                                    {
+                                                        <input type="text" class="form-control m--font-boldest2" id="txtprofilkullanicitipi" title="Değiştirilemez!"  readonly="readonly" value="FİRMA YETKİLİSİ" />
+                                                    }
+                                                    else if (loggeduserinfo.RoleID == 3)
+                                                    {
+                                                        <input type="text" class="form-control m--font-boldest2" id="txtprofilkullanicitipi" title="Değiştirilemez!"  readonly="readonly" value="HBS KULLANICI" />
+                                                    }
+                                                    else if (loggeduserinfo.RoleID == 4)
+                                                    {
+                                                        <input type="text" class="form-control m--font-boldest2" id="txtprofilkullanicitipi" title="Değiştirilemez!"  readonly="readonly" value="HBS YETKİLİSİ" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <input type="text" class="form-control m--font-boldest2" id="txtprofilkullanicitipi" title="Değiştirilemez!"  readonly="readonly" value="STANDART KULLANICI" />
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div class="form-group m-form__group row">
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >E-Mail:</label>
+                                                <div class="col-md-3">
+                                                    <input type="email" class="form-control m--font-boldest2" id="Email" name="Email" value="@loggeduserinfo.Email" />
+                                                </div>
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Firma:</label>
+                                                <div class="col-md-6">
+                                                    <input type="text" class="form-control m--font-boldest2" id="txtprofilfirma" readonly="readonly" value="@loggeduserinfo.Company.CompanyName" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group m-form__group row">
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Şifre:</label>
+                                                <div class="col-md-3">
+                                                    <div class="input-group">
+                                                        <input type="password" class="form-control m-input m--font-boldest2" id="Password" name="Password" value="@loggeduserinfo.Password" />
+                                                        <div class="input-group-prepend" id="profilsifregoster" onclick="sifremigoster()"><span class="input-group-text"><i class="la la-eye"></i></span></div>
+                                                    </div>
+                                                </div>
+                                                <label class="col-lg-1 col-form-label m--font-bolder" >Profil Resmi:</label>
+                                                <div class="custom-file col-md-4">
+                                                    <input type="file" class="custom-file-input m--font-boldest2" name="ProfileImageFile" id="ProfileImageFile" />
+                                                    <label class="custom-file-label" for="customFile"></label>
+                                                    <span class="m-form__help m--font-danger" style="font-size: 12px"><i class="la la-info-circle"></i> Lütfen jpg, jpeg yada png uzantılı resim kullanın!</span>
+                                                </div>
+                                            </div>
+                                        }
+                                        <br />
+                                        <hr />
+                                        <div class="m-portlet__foot m-portlet__no-border m-portlet__foot--fit">
+                                            <div class="m-form__actions ">
+                                                <div class="row" >
+                                                    <div class="col-lg-1"></div>
+                                                    <div class="col-lg-10">
+                                                        <button type="submit" class="btn btn-info m--font-bolder" id="btnprofilguncelle">Güncelle</button>
+                                                        <button type="reset" class="btn btn-outline-info m--font-bolder" id="btnprofiliptal">Iptal</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                        </div>
+
+            }
+            </div>
+        </div>
+    </div>
+}
+

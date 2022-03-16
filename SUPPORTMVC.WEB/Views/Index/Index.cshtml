@@ -1,0 +1,688 @@
+﻿@using System.Activities.XamlIntegration
+@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@{
+
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    RequestManager rm = new RequestManager();
+    List<Users> usrList = rm.GetReqUser();
+    List<Requests> reqList = rm.GetRequestList();
+    int ActiveRequestCount = 0;
+    int ClosedRequestCount = 0;
+    int TotalRequestCount = 0;
+    int totalactivecount = 0;
+    int totalclosedcount = 0;
+    int totalrequestcounts = 0;
+}
+
+@if (Session["User"] != null)
+{
+    int loggeduser = SUPPORTMVC.COMMON.App.Common.GetUserID().Value;
+    int userole;
+    int compid;
+    <div class="m-portlet">
+        <div class="m-portlet__body  m-portlet__body--no-padding">
+            <div class="row m-row--no-padding m-row--col-separator-xl">
+                <div class="col-md-12 col-lg-6 col-xl-4">
+
+                    <!--begin::Total Profit-->
+                    <div class="m-widget24">
+                        <div class="m-widget24__item">
+                            <h4 class="m-widget24__title" style="font-size:1.5rem">
+                                Aktif Talepler
+                            </h4><br>
+                            @foreach (Users usraktf in usrList)
+                            {
+                                if (usraktf.UserID == loggeduser)
+                                {
+                                    userole = usraktf.RoleID;
+                                    if (userole >= 3)
+                                    {
+                                        <span class="m-widget24__desc m--regular-font-size-lg2 m--font-boldest">
+                                            Aktif Görevlerim
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="m-widget24__desc m--regular-font-size-lg2 m--font-boldest">
+                                            Aktif Taleplerim
+                                        </span>
+                                    }
+                                }
+                            }
+                            <span class="m-widget24__stats m--font-success" style="font-size: 2.5rem">
+                                @foreach (Users usrc in usrList)
+                                {
+                                    if (usrc.UserID == loggeduser)
+                                    {
+                                        userole = usrc.RoleID;
+                                        compid = usrc.CompanyID;
+                                        if (userole == 1)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                foreach (Users usr in usrList)
+                                                {
+                                                    if (rq.reqUser.UserID == usr.UserID)
+                                                    {
+                                                        if (rq.reqStatus.StatusID != 6 && rq.reqStatus.StatusID != 7)
+                                                        {
+                                                            ActiveRequestCount = reqList.Where(x => x.reqUser.UserID == loggeduser && rq.reqCompany.CompanyID == compid).Count(a => a.reqStatus.StatusID != 6 && a.reqStatus.StatusID != 7);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (userole == 2)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                foreach (Users usr in usrList)
+                                                {
+                                                    if (usr.UserID == loggeduser)
+                                                    {
+                                                        compid = usr.CompanyID;
+
+                                                        if (rq.reqCompany.CompanyID == compid)
+                                                        {
+                                                            ActiveRequestCount = reqList.Where(x => x.reqCompany.CompanyID == compid).Count(x => x.reqStatus.StatusID != 6 && x.reqStatus.StatusID != 7);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (userole >= 3)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                foreach (Users usr in usrList)
+                                                {
+                                                    if (usr.UserID == loggeduser)
+                                                    {
+                                                        if (rq.RequestAttendant == usr.UserID)
+                                                        {
+                                                            ActiveRequestCount = reqList.Where(x => x.RequestAttendant == usr.UserID).Count(x => x.reqStatus.StatusID != 6 && x.reqStatus.StatusID != 7);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                <span>@ActiveRequestCount</span>
+                            </span>
+                            <div class="m--space-10"></div>
+                            <div class="progress m-progress--sm">
+                                <div class="progress-bar m--bg-success" role="progressbar" style="width: 100%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            @foreach (Users usrtp in usrList)
+                            {
+                                if (usrtp.UserID == loggeduser)
+                                {
+                                    userole = usrtp.RoleID;
+                                    if (userole == 1)
+                                    {
+                                        <span class="m-widget24__change m--regular-font-size-lg3 m--font-boldest">
+                                            Toplam taleplerim
+                                        </span>
+                                    }
+                                    if (userole >= 2)
+                                    {
+                                        <span class="m-widget24__change m--regular-font-size-lg3 m--font-boldest">
+                                            Toplam aktif talep
+                                        </span>
+                                    }
+                                }
+                            }
+                            @foreach (Users usrc in usrList)
+                            {
+                                if (usrc.UserID == loggeduser)
+                                {
+                                    userole = usrc.RoleID;
+                                    compid = usrc.CompanyID;
+                                    if (userole == 1)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            foreach (Users usr in usrList)
+                                            {
+                                                if (usr.UserID == loggeduser)
+                                                {
+                                                    compid = usr.CompanyID;
+
+                                                    if (rq.reqCompany.CompanyID == compid && rq.reqStatus.StatusID != 6 && rq.reqStatus.StatusID != 7 && rq.reqUser.UserID == usr.UserID)
+                                                    {
+                                                        totalactivecount += 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (userole == 2)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            foreach (Users usr in usrList)
+                                            {
+                                                if (usr.UserID == loggeduser)
+                                                {
+                                                    compid = usr.CompanyID;
+
+                                                    if (rq.reqCompany.CompanyID == compid && rq.reqStatus.StatusID != 6 && rq.reqStatus.StatusID != 7)
+                                                    {
+                                                        totalactivecount += 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (userole >= 3)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            foreach (Users usr in usrList)
+                                            {
+                                                if (usr.UserID == loggeduser)
+                                                {
+                                                    compid = usr.CompanyID;
+
+                                                    if (rq.reqStatus.StatusID != 6 && rq.reqStatus.StatusID !=7)
+                                                    {
+                                                        totalactivecount += 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            <span class="m-widget24__number m--regular-font-size-lg3 m--font-boldest2">
+                                @totalactivecount
+                            </span>
+                        </div>
+                    </div>
+
+                    <!--end::Total Profit-->
+                </div>
+                <div class="col-md-12 col-lg-6 col-xl-4">
+
+                    <!--begin::New Feedbacks-->
+                    <div class="m-widget24">
+                        <div class="m-widget24__item">
+                            <h4 class="m-widget24__title" style="font-size: 1.5rem">
+                                Kapanan Talepler
+                            </h4><br>
+                            @foreach (Users usrtp in usrList)
+                            {
+                                if (usrtp.UserID == loggeduser)
+                                {
+                                    userole = usrtp.RoleID;
+                                    if (userole <= 2)
+                                    {
+                                        <span class="m-widget24__desc m--regular-font-size-lg2 m--font-boldest">
+                                            Kapanan Taleplerim
+                                        </span>
+                                    }
+                                    if (userole >= 3)
+                                    {
+                                        <span class="m-widget24__desc m--regular-font-size-lg2 m--font-boldest">
+                                            Kapanan Görevlerim
+                                        </span>
+                                    }
+                                }
+                            }
+                            <span class="m-widget24__stats m--font-metal" style="font-size: 2.5rem">
+                                @foreach (Users usrc in usrList)
+                                {
+                                    if (usrc.UserID == loggeduser)
+                                    {
+                                        userole = usrc.RoleID;
+                                        compid = usrc.CompanyID;
+                                        if (userole == 1)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                foreach (Users usr in usrList)
+                                                {
+                                                    if (rq.reqUser.UserID == usr.UserID)
+                                                    {
+                                                        compid = usr.CompanyID;
+                                                        if (rq.reqStatus.StatusID != 6 && rq.reqStatus.StatusID != 7)
+                                                        {
+                                                            ClosedRequestCount = reqList.Where(x => x.reqUser.UserID == loggeduser && rq.reqCompany.CompanyID == compid).Count(a => a.reqStatus.StatusID == 7);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (userole == 2)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                if (rq.reqCompany.CompanyID == compid)
+                                                {
+                                                    ClosedRequestCount = reqList.Count(a => a.reqCompany.CompanyID == compid && a.reqStatus.StatusID == 7);
+                                                }
+                                            }
+                                        }
+                                        if (userole >= 3)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                foreach (Users usr in usrList)
+                                                {
+                                                    if (usr.UserID == loggeduser)
+                                                    {
+                                                        if (rq.RequestAttendant == usr.UserID)
+                                                        {
+                                                            ClosedRequestCount = reqList.Where(x => x.RequestAttendant == usr.UserID).Count(x => x.reqStatus.StatusID == 7);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                <span>@ClosedRequestCount</span>
+                            </span>
+                            <div class="m--space-10"></div>
+                            <div class="progress m-progress--sm">
+                                <div class="progress-bar m--bg-metal" role="progressbar" style="width: 100%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            @foreach (Users usrtp in usrList)
+                            {
+                                if (usrtp.UserID == loggeduser)
+                                {
+                                    userole = usrtp.RoleID;
+                                    if (userole == 1)
+                                    {
+                                        <span class="m-widget24__change m--regular-font-size-lg3 m--font-boldest">
+                                            Toplam kapanan taleplerim
+                                        </span>
+                                    }
+                                    if (userole >= 2)
+                                    {
+                                        <span class="m-widget24__change m--regular-font-size-lg3 m--font-boldest">
+                                            Toplam kapanan talep
+                                        </span>
+                                    }
+                                }
+                            }
+                            @foreach (Users usrc in usrList)
+                            {
+                                if (usrc.UserID == loggeduser)
+                                {
+                                    userole = usrc.RoleID;
+                                    compid = usrc.CompanyID;
+                                    if (userole == 1)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            foreach (Users usr in usrList)
+                                            {
+                                                if (rq.reqUser.UserID == usr.UserID)
+                                                {
+                                                    compid = usr.CompanyID;
+                                                    if (rq.reqStatus.StatusID != 6 && rq.reqStatus.StatusID != 7)
+                                                    {
+                                                        totalclosedcount = reqList.Where(x => x.reqUser.UserID == loggeduser && rq.reqCompany.CompanyID == compid).Count(a => a.reqStatus.StatusID == 7);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (userole == 2)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            if (rq.reqCompany.CompanyID == compid)
+                                            {
+                                                totalclosedcount = reqList.Count(a => a.reqCompany.CompanyID == compid && a.reqStatus.StatusID == 7);
+                                            }
+                                        }
+                                    }
+                                    if (userole >= 3)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            foreach (Users usr in usrList)
+                                            {
+                                                if (usr.UserID == loggeduser)
+                                                {
+                                                    if (rq.RequestAttendant == usr.UserID)
+                                                    {
+                                                        totalclosedcount = reqList.Count(x => x.reqStatus.StatusID == 7);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            <span class="m-widget24__number m--regular-font-size-lg3 m--font-boldest2">
+                                @totalclosedcount
+                            </span>
+                        </div>
+                    </div>
+
+                    <!--end::New Feedbacks-->
+                </div>
+                <div class="col-md-12 col-lg-6 col-xl-4">
+
+                    <!--begin::New Orders-->
+                    <div class="m-widget24">
+                        <div class="m-widget24__item">
+                            <h4 class="m-widget24__title" style="font-size:1.5rem">
+                                Toplam Talep
+                            </h4><br>
+                            <span class="m-widget24__desc m--regular-font-size-lg2 m--font-boldest">
+                                Toplam talep
+                            </span>
+                            <span class="m-widget24__stats m--font-danger" style="font-size:2.5rem">
+                                @foreach (Users usrc in usrList)
+                                {
+                                    if (usrc.UserID == loggeduser)
+                                    {
+                                        userole = usrc.RoleID;
+                                        compid = usrc.CompanyID;
+                                        if (userole == 1)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                foreach (Users usr in usrList)
+                                                {
+                                                    if (usr.UserID == loggeduser)
+                                                    {
+                                                        compid = usr.CompanyID;
+
+                                                        if (rq.reqCompany.CompanyID == compid && rq.reqStatus.StatusID != 6 && rq.reqUser.UserID == usr.UserID)
+                                                        {
+                                                            TotalRequestCount += 1;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (userole == 2)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                foreach (Users usr in usrList)
+                                                {
+                                                    if (usr.UserID == loggeduser)
+                                                    {
+                                                        compid = usr.CompanyID;
+
+                                                        if (rq.reqCompany.CompanyID == compid && rq.reqStatus.StatusID != 6)
+                                                        {
+                                                            TotalRequestCount += 1;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (userole >= 3)
+                                        {
+                                            foreach (Requests rq in reqList)
+                                            {
+                                                foreach (Users usr in usrList)
+                                                {
+                                                    if (usr.UserID == loggeduser)
+                                                    {
+
+                                                        if (rq.reqStatus.StatusID != 6)
+                                                        {
+                                                            TotalRequestCount += 1;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                <span>@TotalRequestCount</span>
+                            </span>
+                            <div class="m--space-10"></div>
+                            <div class="progress m-progress--sm">
+                                <div class="progress-bar m--bg-danger" role="progressbar" style="width: 100%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            @foreach (Users usrtp in usrList)
+                            {
+                                if (usrtp.UserID == loggeduser)
+                                {
+                                    userole = usrtp.RoleID;
+                                    if (userole == 1)
+                                    {
+                                        <span class="m-widget24__change m--regular-font-size-lg3 m--font-boldest">
+                                            Toplam iptal edilen taleplerim
+                                        </span>
+                                    }
+                                    if (userole >= 2)
+                                    {
+                                        <span class="m-widget24__change m--regular-font-size-lg3 m--font-boldest">
+                                            Toplam iptal edilen talep
+                                        </span>
+                                    }
+                                }
+                            }
+                            @foreach (Users usrc in usrList)
+                            {
+                                if (usrc.UserID == loggeduser)
+                                {
+                                    userole = usrc.RoleID;
+                                    compid = usrc.CompanyID;
+                                    if (userole == 1)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            foreach (Users usr in usrList)
+                                            {
+                                                if (usr.UserID == loggeduser)
+                                                {
+                                                    compid = usr.CompanyID;
+
+                                                    if (rq.reqCompany.CompanyID == compid && rq.reqStatus.StatusID == 6 && rq.reqUser.UserID == usr.UserID)
+                                                    {
+                                                        totalrequestcounts += 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (userole == 2)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            foreach (Users usr in usrList)
+                                            {
+                                                if (usr.UserID == loggeduser)
+                                                {
+                                                    compid = usr.CompanyID;
+
+                                                    if (rq.reqCompany.CompanyID == compid && rq.reqStatus.StatusID == 6)
+                                                    {
+                                                        totalrequestcounts += 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (userole >= 3)
+                                    {
+                                        foreach (Requests rq in reqList)
+                                        {
+                                            foreach (Users usr in usrList)
+                                            {
+                                                if (usr.UserID == loggeduser)
+                                                {
+
+                                                    if (rq.reqStatus.StatusID == 6)
+                                                    {
+                                                        totalrequestcounts += 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            <span class="m-widget24__number m--regular-font-size-lg3 m--font-boldest2">
+                                @totalrequestcounts
+                            </span>
+                        </div>
+                    </div>
+
+                    <!--end::New Orders-->
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="m-portlet  m-portlet--full-height ">
+                <div class="m-portlet__body">
+                    <canvas id="myChart" width="400" height="250"></canvas>
+                    <script>
+                        var ctx = document.getElementById('myChart').getContext('2d');
+                        var myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                                datasets: [{
+                                    label: '# of Votes',
+                                    data: [12, 19, 3, 5, 2, 3],
+                                    backgroundColor: [
+                                        'rgba(255, 99, 132, 0.2)',
+                                        'rgba(54, 162, 235, 0.2)',
+                                        'rgba(255, 206, 86, 0.2)',
+                                        'rgba(75, 192, 192, 0.2)',
+                                        'rgba(153, 102, 255, 0.2)',
+                                        'rgba(255, 159, 64, 0.2)'
+                                    ],
+                                    borderColor: [
+                                        'rgba(255, 99, 132, 1)',
+                                        'rgba(54, 162, 235, 1)',
+                                        'rgba(255, 206, 86, 1)',
+                                        'rgba(75, 192, 192, 1)',
+                                        'rgba(153, 102, 255, 1)',
+                                        'rgba(255, 159, 64, 1)'
+                                    ],
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true
+                                        }
+                                    }]
+                                }
+                            }
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="m-portlet  m-portlet--full-height ">
+                <div class="m-portlet__body">
+                    <canvas id="myChartss" width="400" height="250"></canvas>
+                    <script>
+                        var ctx = document.getElementById('myChartss').getContext('2d');
+                        var myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                                datasets: [{
+                                    label: '# of Votes',
+                                    data: [12, 19, 3, 5, 2, 3],
+                                    backgroundColor: [
+                                        'rgba(255, 99, 132, 0.2)',
+                                        'rgba(54, 162, 235, 0.2)',
+                                        'rgba(255, 206, 86, 0.2)',
+                                        'rgba(75, 192, 192, 0.2)',
+                                        'rgba(153, 102, 255, 0.2)',
+                                        'rgba(255, 159, 64, 0.2)'
+                                    ],
+                                    borderColor: [
+                                        'rgba(255, 99, 132, 1)',
+                                        'rgba(54, 162, 235, 1)',
+                                        'rgba(255, 206, 86, 1)',
+                                        'rgba(75, 192, 192, 1)',
+                                        'rgba(153, 102, 255, 1)',
+                                        'rgba(255, 159, 64, 1)'
+                                    ],
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true
+                                        }
+                                    }]
+                                }
+                            }
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+    @*<div class="row">
+        <div class="col-xl-12">
+            <div class="m-portlet  m-portlet--full-height ">
+                <div class="m-portlet__body">
+                    <div id="m_flotcharts_9" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+
+
+
+    @*<div class="col-xl-6">
+            <div class="m-portlet  m-portlet--full-height ">
+                <div class="m-portlet__body">
+                    <div class="m-widget16">
+                        <div class="row">
+                            <canvas id="TalepDurumChart" width="400" height="250"></canvas>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @foreach (Users usr in usrList)
+        {
+            if (usr.UserID == loggeduser)
+            {
+                userole = usr.RoleID;
+                if (userole == 2)
+                {
+                    <div class="col-xl-6">
+                        <div class="m-portlet  m-portlet--full-height ">
+                            <div class="m-portlet__body">
+                                <div class="m-widget16">
+                                    <div class="row">
+                                        <canvas id="TalepSahibiChart" width="400" height="250"></canvas>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }*@
+
+}
+<script src="~/Content/assets/vendors/custom/flot/flot.bundle.js"></script>
+<script src="~/Content/assets/demo/demo12/custom/components/charts/flotcharts.js"></script>
+@*<script src="~/TODO_JS/DashboardCharts.js"></script>*@

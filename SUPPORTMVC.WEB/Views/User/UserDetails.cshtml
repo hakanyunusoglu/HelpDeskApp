@@ -1,0 +1,719 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@model Users
+@{
+    ViewBag.Title = "UserDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    UserManager um = new UserManager();
+    RequestManager rm = new RequestManager();
+    List<RequestStatus> statuslist = rm.GetReqStatus();
+    List<CommentStatus> comstat = rm.GetCommentStatus();
+    List<Requests> rlist = rm.GetRequestList();
+    List<Users> uslist = um.GetUsers();
+    string companyauth = @Model.Company.CompanyAuthName.ToUpper().Substring(0, 1) + @Model.Company.CompanyAuthName.Substring(1) + " " + @Model.Company.CompanyAuthSurname.ToUpper();
+}
+
+@if (Session["User"] != null)
+{
+    int loggeduser = SUPPORTMVC.COMMON.App.Common.GetUserID().Value;
+
+    using (Html.BeginForm())
+    {
+        @Html.HiddenFor(model => model.UserID)
+
+        <script>
+            function sifremigoster() {
+                var element = document.getElementById('Password');
+                element.type = (element.type == 'password' ? 'text' : 'password');
+            }
+        </script>
+
+        <div class="m-portlet">
+            <div class="m-portlet__head">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title col-md-4">
+                        <h3 class="m-portlet__head-text">
+                            Kullanıcı Detayları
+                        </h3>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="@Url.Action("UserReg", "User")" class="btn btn-outline-info m--font-bolder m--align-right">
+                            <i class="fa fa-plus-circle">&nbsp;</i>
+                            Yeni Kullanıcı Oluştur
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="@Url.Action("UserList", "User")" class="btn btn-outline-info m--font-bolder m--align-right">
+                            <i class="fa fa-arrow-circle-left">&nbsp;</i>
+                            Kullanıcılar Listesine Dön
+                        </a>
+                    </div>
+                </div>
+                </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2">
+                <div class="m-portlet m-portlet--creative m-portlet--first m-portlet--bordered-semi">
+                    <div class="m-portlet__body" style="margin-top: -2rem">
+                        <span class="m-topbar__userpic" style="margin-left: 0.6rem">
+                            <img src="~/Content/assets/img/user_img/@Model.ProfileImage" class="m--marginless" style="width: 170px; height: 170px" alt="" />
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-10">
+                <div class="m-portlet m-portlet--creative m-portlet--first m-portlet--bordered-semi">
+                    <div class="m-portlet__head">
+                        <div class="m-portlet__head-caption">
+                            <div class="m-portlet__head-title">
+                                <div class="m-portlet__head-label m-portlet__head-label--primary" style="width: 14rem">
+                                    <span>Kullanıcı Bilgileri</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__body" style="margin-top: -4rem">
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">Kul. Adı:</label>
+                            <div class="col-md-3">
+                                @Html.TextBoxFor(model => model.Username, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">Parola:</label>
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <input type="password" class="form-control m-input m--font-boldest2" id="Password" name="Password" value="@Model.Password" />
+                                    <div class="input-group-prepend" id="profilsifregoster" onclick="sifremigoster()"><span class="input-group-text"><i class="la la-eye"></i></span></div>
+                                </div>
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">Kul. Durum:</label>
+                            <div class="col-md-3" style="margin-top: 0.6rem">
+                                @if (Model.IsActive == true)
+                                {
+                                    <span class="m-badge m-badge--success m-badge--wide m--font-bolder" style="color: white; font-size: 1.2rem">AKTİF</span>
+                                }
+                                else
+                                {
+                                    <span class="m-badge m-badge--metal m-badge--wide m--font-bolder" style="color: black; font-size: 1.2rem">PASİF</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">Ad Soyad:</label>
+                            <div class="col-md-3">
+                                @foreach (Users usr in uslist)
+                                {
+                                    if (usr.UserID == Model.UserID)
+                                    {
+                                        string usersname;
+                                        usersname = usr.UName.ToUpper().Substring(0, 1) + usr.UName.Substring(1) + " " + usr.USurname.ToUpper();
+
+                                        @Html.TextBoxFor(model => usersname, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                                    }
+                                }
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">E-Mail:</label>
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.Email, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">Kul. Tipi:</label>
+                            <div class="col-md-3">
+                                @if (Model.RoleID == 1)
+                                {
+                                    <input type="text" class="form-control m-input m--font-boldest2" value="Standart Kullanıcı" readonly />
+                                }
+                                else if (Model.RoleID == 2)
+                                {
+                                    <input type="text" class="form-control m-input m--font-boldest2" value="Firma Yetkilisi" readonly />
+                                }
+                                else if (Model.RoleID == 3)
+                                {
+                                    <input type="text" class="form-control m-input m--font-boldest2" value="HBS Kullanıcı" readonly />
+                                }
+                                else if (Model.RoleID == 4)
+                                {
+                                    <input type="text" class="form-control m-input m--font-boldest2" value="HBS Yetkilisi" readonly />
+                                }
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">Oluş. Tarihi:</label>
+                            <div class="col-md-2">
+                                <input type="text" class="form-control m-input m--font-boldest2" value="@Model.CreationDate" readonly />
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">Oluşturan:</label>
+                            <div class="col-md-3">
+                                @foreach (Users usr in uslist)
+                                {
+                                    if (usr.UserID == Model.ModifiedUserID)
+                                    {
+                                        string creatoruser;
+                                        creatoruser = usr.UName.ToUpper().Substring(0, 1) + usr.UName.Substring(1) + " " + usr.USurname.ToUpper();
+
+                                        @Html.TextBoxFor(model => creatoruser, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2">
+                <div class="m-portlet m-portlet--creative m-portlet--first m-portlet--bordered-semi">
+                    <div class="m-portlet__body" style="margin-top: -2rem">
+                        <span class="m-topbar__userpic" style="margin-left: 0.6rem">
+                            <img src="~/Content/assets/img/companylogo.png" class="m--marginless" style="width: 170px; height: 170px" alt="" />
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-10">
+                <div class="m-portlet m-portlet--creative m-portlet--first m-portlet--bordered-semi">
+                    <div class="m-portlet__head">
+                        <div class="m-portlet__head-caption">
+                            <div class="m-portlet__head-title">
+                                <h3 class="m-portlet__head-text"></h3>
+                                <h2 class="m-portlet__head-label m-portlet__head-label--warning" style="width: 12rem">
+                                    <span>Firma Bilgileri</span>
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__body" style="margin-top: -4rem">
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">Firma Kodu:</label>
+                            <div class="col-md-3">
+                                @Html.TextBoxFor(model => model.Company.CompanyCode, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">Firma Adı:</label>
+                            <div class="col-md-6">
+                                @Html.TextBoxFor(model => model.Company.CompanyName, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">Firma No:</label>
+                            <div class="col-md-3">
+                                @Html.TextBoxFor(model => model.Company.CompanyOfficePhone, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">Mobil No:</label>
+                            <div class="col-md-2">
+                                @Html.TextBoxFor(model => model.Company.CompanyMobilePhone, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-lg-1 col-form-label m--font-bolder">Yetkili:</label>
+                            <div class="col-md-3">
+                                @Html.TextBoxFor(model => companyauth, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                            <label class="col-lg-1 col-form-label m--font-bolder">E-Mail:</label>
+                            <div class="col-md-5">
+                                @Html.TextBoxFor(model => model.Company.CompanyEmail, new { @class = "form-control m-input m--font-boldest2", type = "text", @readonly = "readonly" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="m-form m-form--label-align-right  m--margin-bottom-30">
+            <div class="row align-items-center">
+                <div class="col-xl-12">
+                        <div class="m-portlet m-portlet--head-sm " m-portlet="true" id="m_portlet_tools_3">
+                            <div class="m-portlet__head">
+                                <div class="m-portlet__head-caption col-xl-8">
+                                    <div class="m-portlet__head-title">
+                                        <span class="m-portlet__head-icon">
+                                            <i class="flaticon-interface-3"></i>
+                                        </span>
+                                        <h3 class="m-portlet__head-text">
+                                            Kullanıcı Talepleri
+                                        </h3>
+                                    </div>
+                                </div>
+                                <div class="m-portlet__head-tools">
+                                    <ul class="m-portlet__nav">
+                                        <li class="m-portlet__nav-item">
+                                            <a href="#" m-portlet-tool="toggle" class="m-portlet__nav-link m-portlet__nav-link--icon"><i class="la la-angle-down"></i></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="m-portlet__body">
+                                    <table class="m-datatable m--font-bold table-checkable" id="html_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Talep No</th>
+                                                <th>Talep Tarihi</th>
+                                                <th>Talep Türü</th>
+                                                <th>Açıklama</th>
+                                                <th>Öncelik</th>
+                                                <th>Durumu</th>
+                                                <th>Görevli</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (Requests reqList in rlist)
+                                            {
+                                                foreach (Users loggeduserinfos in uslist)
+                                                {
+                                                    if (loggeduserinfos.UserID == Model.UserID)
+                                                    {
+                                                        if (reqList.reqUser.UserID == Model.UserID)
+                                                        {
+                                                            <tr>
+                                                                <td>#@reqList.RequestNumber#</td>
+                                                                <td>@reqList.RequestDate</td>
+                                                                <td>@reqList.reqType.RequestTypeTitle</td>
+                                                                @if (reqList.RequestDescription.Length > 50)
+                                                                {
+                                                                    <td>
+                                                                        <span title="@reqList.RequestDescription">
+                                                                            @reqList.RequestDescription.Substring(0, 50) ...
+                                                                        </span>
+                                                                    </td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td><span title="@reqList.RequestDescription">@reqList.RequestDescription</span></td>
+                                                                }
+                                                                @if (@reqList.reqPriority.PriorityID == 1)
+                                                                {
+                                                                    <td><span class="m--font-bold m--font-info">Normal</span></td>
+                                                                }
+                                                                else if (@reqList.reqPriority.PriorityID == 2)
+                                                                {
+                                                                    <td><span class="m--font-bold m--font-warning">Öncelikli</span></td>
+                                                                }
+                                                                else if (@reqList.reqPriority.PriorityID == 3)
+                                                                {
+                                                                    <td><span class="m--font-bold m--font-danger">Acil</span></td>
+                                                                }
+                                                                @foreach (CommentStatus cs in comstat)
+                                                                {
+                                                                    if (reqList.reqStatus.StatusID == 1 && reqList.CommentStatusID == 1)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 1)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 1 && reqList.CommentStatusID == 2)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 2)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 1 && reqList.CommentStatusID == 3)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 3)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 1 && reqList.CommentStatusID == 4)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 4)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 1 && reqList.CommentStatusID == 5)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 5)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+
+                                                                    else if (reqList.reqStatus.StatusID == 2 && reqList.CommentStatusID == 1)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 1)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 2 && reqList.CommentStatusID == 2)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 2)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 2 && reqList.CommentStatusID == 3)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 3)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 2 && reqList.CommentStatusID == 4)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 4)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 2 && reqList.CommentStatusID == 5)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 5)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 3 && reqList.CommentStatusID == 1)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 1)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 3 && reqList.CommentStatusID == 2)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 2)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 3 && reqList.CommentStatusID == 3)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 3)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 3 && reqList.CommentStatusID == 4)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 4)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 3 && reqList.CommentStatusID == 5)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 5)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 4 && reqList.CommentStatusID == 1)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 1)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 4 && reqList.CommentStatusID == 2)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 2)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 4 && reqList.CommentStatusID == 3)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 3)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 4 && reqList.CommentStatusID == 4)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 4)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 4 && reqList.CommentStatusID == 5)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 5)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 5 && reqList.CommentStatusID == 1)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 1)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 5 && reqList.CommentStatusID == 2)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 2)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 5 && reqList.CommentStatusID == 3)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 3)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 5 && reqList.CommentStatusID == 4)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 4)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 5 && reqList.CommentStatusID == 5)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 5)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 6 && reqList.CommentStatusID == 1)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 1)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 6 && reqList.CommentStatusID == 2)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 2)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 6 && reqList.CommentStatusID == 3)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 3)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 6 && reqList.CommentStatusID == 4)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 4)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 6 && reqList.CommentStatusID == 5)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 5)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 7 && reqList.CommentStatusID == 1)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 1)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 7 && reqList.CommentStatusID == 2)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 2)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 7 && reqList.CommentStatusID == 3)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 3)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 7 && reqList.CommentStatusID == 4)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 4)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                    else if (reqList.reqStatus.StatusID == 7 && reqList.CommentStatusID == 5)
+                                                                    {
+                                                                        if (cs.CommentStatusID == 5)
+                                                                        {
+                                                                            <td>
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@reqList.reqStatus.StatusTitle</span>
+                                                                                <hr />
+                                                                                <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                                                                            </td>
+                                                                        }
+                                                                    }
+                                                                }
+                                                                @foreach (Users usl in uslist)
+                                                                {
+                                                                    if (usl.UserID == reqList.RequestAttendant)
+                                                                    {
+                                                                        if (usl.UserID == 19)
+                                                                        {
+                                                                            <td><span class="m--font-boldest">@usl.UName @usl.USurname</span></td>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <td>@usl.UName @usl.USurname</td>
+                                                                        }
+                                                                    }
+                                                                }
+                                                                <td>
+                                                                    <a href="/RequestList/RequestDetails/@reqList.RequestID" class="m-portlet__nav-link btn m-btn m-btn--hover-brand m-btn--icon m-btn--icon-only m-btn--pill" title="Talep Detayları">
+                                                                        <i class="fa flaticon-list"></i>
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+       
+
+
+    }
+}
+<script src="~/Content/assets/demo/demo12/custom/crud/metronic-datatable/base/html-table.js" type="text/javascript"></script>

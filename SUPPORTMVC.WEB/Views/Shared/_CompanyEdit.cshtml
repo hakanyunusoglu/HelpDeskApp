@@ -1,0 +1,60 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@model Companies
+
+<form>
+    <div class="form-group m-form__group row" style="margin-top: -1rem">
+        <div class="col-md-12">
+            <span class="m-form__help m--font-danger" style="font-size: 1.1rem"> Firma Kodu ve Firma Adı alanları boş geçilemez!</span>
+        </div>
+    </div>
+    <hr />
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder"> Firma Kodu:</label>
+        <div class="col-md-3">
+            <input type="text" class="form-control m-input m--font-boldest2" id="CompanyCode" value="@Model.CompanyCode" />
+        </div>
+        <label class="col-lg-1 col-form-label m--font-bolder">Domain:</label>
+        <div class="col-md-4">
+            <input type="text" class="form-control m-input m--font-boldest2" id="CompanyDomain" value="@Model.CompanyDomain" />
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder"> Firma Adı:</label>
+        <div class="col-md-8">
+            <input type="text" class="form-control m-input m--font-boldest2" id="CompanyName" value="@Model.CompanyName" />
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder">Yetkili Adı:</label>
+        <div class="col-md-3">
+            <input type="text" class="form-control m-input m--font-boldest2" id="CompanyAuthName" value="@Model.CompanyAuthName" />
+        </div>
+        <label class="col-lg-1 col-form-label m--font-bolder">Soyadı:</label>
+        <div class="col-md-4">
+            <input type="text" class="form-control m-input m--font-boldest2" id="CompanyAuthSurname" value="@Model.CompanyAuthSurname" />
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder"> E-Mail:</label>
+        <div class="col-md-8">
+            <input type="text" class="form-control m-input m--font-boldest2" id="CompanyEmail" value="@Model.CompanyEmail" />
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder"> Ofis No:</label>
+        <div class="col-md-3">
+            <input type="text" class="form-control m-input m--font-boldest2" id="CompanyOfficePhone" value="@Model.CompanyOfficePhone" />
+        </div>
+        <label class="col-lg-1 col-form-label m--font-bolder"> CepNo:</label>
+        <div class="col-md-4">
+            <input type="text" class="form-control m-input m--font-boldest2" id="CompanyMobilePhone" value="@Model.CompanyMobilePhone" />
+        </div>
+    </div>
+    <hr />
+    @Html.HiddenFor(x => Model.CompanyID)
+    <div class="form-group m-form__group row float-right m--margin-right-65 m--margin-top-5" style="margin-bottom: -1%">
+        <button type="button" id="userEditButton" class="btn btn-info m--font-boldest" style="width: 10rem" onclick="EditCompany(this, 'companyEdit');"> Güncelle </button>
+    </div>
+</form>
+

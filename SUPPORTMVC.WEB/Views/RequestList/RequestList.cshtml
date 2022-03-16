@@ -1,0 +1,2056 @@
+﻿@using SUPPORTMVC.ENTITIES.DBT
+@using SUPPORTMVC.BLL
+
+@model IOrderedEnumerable<Requests>
+@{
+    ViewBag.Title = "Talep Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    RequestManager rm = new RequestManager();
+    UserManager um = new UserManager();
+    List<Users> userslist = um.GetUsers();
+    List<RequestStatus> statuslist = rm.GetReqStatus();
+    List<RequestPriority> priorityList = rm.GetReqPrioList();
+    List<CommentStatus> comstat = rm.GetCommentStatus();
+    List<AttendantParameter> ap = rm.GetReqAttendantParameter();
+    }
+@if (Session["User"] != null)
+{
+    int loggedusername = SUPPORTMVC.COMMON.App.Common.GetUserID().Value;
+    int userole;
+    int compid;
+    int adminparam = 0;
+    foreach (AttendantParameter atp in ap)
+    {
+        adminparam = atp.AdminAttendantEnable;
+    }
+
+    @*<script>
+        $(".m-datatable").mDatatable({
+            "autoWidth": false,
+            "columns": [
+                { "width": '4%' },
+                { "width": '8%' },
+                { "width": '12%' },
+                { "width": '12%' },
+                { "width": '12%' },
+                { "width": '25%' },
+                { "width": '7%' },
+                { "width": '13%' },
+                { "width": '7%' }
+            ]
+        });
+    </script>*@
+<div class="m-portlet">
+<div class="m-portlet__head">
+    <div class="m-portlet__head-caption">
+        <div class="m-portlet__head-title col-md-6">
+            <h3 class="m-portlet__head-text">
+                Aktif Talep Listesi
+            </h3>
+        </div>
+        <a href="@Url.Action("RequestReg", "Request")" class="btn btn-outline-info m--font-bolder m--align-right">
+            <i class="fa fa-plus-circle">&nbsp;</i>
+            Yeni Talep Oluştur
+        </a>
+    </div>
+</div>
+    <div class="m-portlet__body">
+    <div class="m-form m-form--label-align-right  m--margin-bottom-30">
+        <div class="row align-items-center">
+        <div class="col-xl-12">
+        @using (Html.BeginForm())  
+        {  
+        @*<form class="m-form m-form--fit m--margin-bottom-20">*@
+            <div class="m-portlet m-portlet--head-sm m-portlet--collapsed " m-portlet="false" id="m_portlet_tools_3">
+            <div class="m-portlet__head">
+                <div class="m-portlet__head-caption col-xl-8">
+                    <div class="m-portlet__head-title">
+                        <span class="m-portlet__head-icon">
+                            <i class="flaticon-search-1"></i>
+                        </span>
+                        <h3 class="m-portlet__head-text">
+                            Filtrele
+                        </h3>
+                    </div>
+                    <div class="col-xl-8">
+                        <div class="m-input-icon m-input-icon--left">
+                            <input type="text" class="form-control m-input m--font-boldest2" placeholder="Ara..." id="generalSearch">
+                            <span class="m-input-icon__icon m-input-icon__icon--left">
+                                <span><i class="la la-search"></i></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-portlet__head-tools">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <a href="#" m-portlet-tool="toggle" class="m-portlet__nav-link m-portlet__nav-link--icon"><i class="la la-angle-down"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="m-portlet__body">
+
+                <div class="form-group m-form__group row align-items-center">
+                    <div class="col-md-2">
+                        <div class="m-form__label">
+                            <label class="m-label m-label--single m--font-boldest2">Durum: </label>
+                        </div>
+                        <div class="m-form__control">
+                            <select class="form-control m-input m--font-boldest2" id="m_form_status" data-col-index="0">
+                                <option value="">Hepsi</option>
+                                @foreach (RequestStatus rqs in statuslist)
+                                {
+                                    <option value="@rqs.StatusID">@rqs.StatusTitle</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="m-form__label">
+                            <label class="m-label m-label--single m--font-boldest2">Öncelik: </label>
+                        </div>
+                        <div class="m-form__control">
+                            <select class="form-control m-input m--font-boldest2" id="m_form_type" data-col-index="1">
+                                <option value="">Hepsi</option>
+                                @foreach (RequestPriority rqp in priorityList)
+                                {
+                                    <option value="@rqp.PriorityID">@rqp.PriorityTitle</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                         <div class="m-form__label">
+                             <label class="m-label m-label--single m--font-boldest2">Firma Adı: </label>
+                         </div>
+                         <div class="m-form__control">
+                             <select class="form-control m-select2 m--font-boldest2" id="m_select2_1" data-col-index="2">
+                                 <option value="0" selected>Firma Seçiniz</option>
+                             </select>
+                         </div> 
+                    </div>
+                    <div class="col-md-3">
+                        <div class="m-form__label">
+                            <label class="m-label m-label--single m--font-boldest2">Tarih Aralığı: </label>
+                        </div>
+                        <div class="m--margin-bottom-10-tablet-and-mobile">
+                            <div class="input-daterange input-group" id="m_datepicker_3">
+                                <input type="text" class="form-control m-input" name="start" placeholder="Başlangıç" data-col-index="5"/>
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="la la-ellipsis-h"></i></span>
+                                </div>
+                                <input type="text" class="form-control m-input" name="end" placeholder="Bitiş" data-col-index="5"/>
+                            </div>
+                        </div>
+                        @*<div class='input-group' id='m_daterangepicker_2'>
+                                <input type='text' class="form-control m-input m--font-boldest2" readonly placeholder="Tarih Aralığı Seçin" />
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="la la-calendar-check-o"></i></span>
+                                </div>
+                            </div>*@
+                    </div>
+                </div>
+                <div class="form-group m-form__group row align-items-center">
+                    <div class="col-md-4">
+                        <div class="m-form__label">
+                            <label class="m-label m-label--single m--font-boldest2">Talep Sahibi:</label>
+                        </div>
+                        <div class="m-form__control">
+
+                            <select class="form-control m-select2" id="m_form_TalepSahibi" multiple="multiple" data-col-index="4">
+                                            
+                            </select>
+                        </div>
+                    </div>
+                    @foreach(Users usr in userslist)
+                    {
+                        if (loggedusername == usr.UserID)
+                        {
+                            userole = usr.RoleID;
+
+                            if(userole >= 3)
+                            { 
+                                <div class="col-md-4">
+                                    <div class="m-form__label">
+                                        <label class="m-label m-label--single m--font-boldest2">Görevli Adı:</label>
+                                    </div>
+                                    <div class="m-form__control">
+                                        <select class="form-control m-select2" id="m_form_Gorevli" multiple="multiple">
+                                        </select>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+                <div class="form-group m-form__group row align-items-center">
+                    <div>
+                        <button class="btn btn-info m-btn m-btn--icon" type="submit" id="filterButton">
+                            <span>
+                                <i class="la la-search"></i>
+                                <span>Filtrele</span>
+                            </span>
+                        </button>
+                    </div>
+                    &nbsp;&nbsp;
+                    <div>
+                        <button class="btn btn-outline-info m--font-bolder m-btn m-btn--icon" id="m_reset">
+                            <span>
+                                <i class="la la-close"></i>
+                                <span>Temizle</span>
+                            </span>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+            </div>
+        }
+        @*</form>*@
+        </div>
+        </div>
+    </div>
+    <table class="m-datatable" id="html_table" width="100%">
+    <thead>
+        <tr>
+            <th data-field="TalepNo" >Talep No</th>
+            <th data-field="TalepTarihi">Talep Tarihi</th>
+            <th data-field="FirmaAdi">Firma Adı</th>
+            <th data-field="TalepSahibi">Talep Sahibi</th>
+            <th data-field="TalepTürü">Talep Türü</th>
+            <th data-field="TalepAciklamasi">Açıklama</th>
+            <th data-field="StatusTitle">Durumu</th>
+            <th data-field="TalepGorevli">Görevli</th>
+            <th data-field="Action"></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (Users loggeduserinfos in userslist)
+    {
+        if (loggedusername == loggeduserinfos.UserID)
+        {
+            userole = loggeduserinfos.RoleID;
+            compid = loggeduserinfos.CompanyID;
+
+            if (userole == 1)
+            {
+                foreach (Requests aktiftalep in Model)
+                {
+                    if (aktiftalep.reqUser.UserID == loggeduserinfos.UserID && (aktiftalep.reqStatus.StatusID != 6 && aktiftalep.reqStatus.StatusID != 7))
+                    {
+        <tr>
+            <td>#@aktiftalep.RequestNumber#</td>
+            <td>@aktiftalep.RequestDate</td>
+            <td>@aktiftalep.reqCompany.CompanyName</td>
+            <td>@aktiftalep.reqUser.UName @aktiftalep.reqUser.USurname</td>
+            <td>@aktiftalep.reqType.RequestTypeTitle</td>
+        @if (aktiftalep.RequestDescription.Length > 50)
+        {
+            <td><span title="@aktiftalep.RequestDescription">@aktiftalep.RequestDescription.Substring(0, 50) ...</span></td>
+        }
+        else
+        {
+            <td><span title="@aktiftalep.RequestDescription">@aktiftalep.RequestDescription</span></td>
+        }
+        
+            @foreach (CommentStatus cs in comstat)
+            {
+                if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+            }
+            @foreach (Users usl in userslist)
+            {
+                if (usl.UserID == aktiftalep.RequestAttendant)
+                {
+                    if (usl.UserID == 19)
+                    {
+                        <td><span class="m--font-boldest">@usl.UName @usl.USurname</span></td>
+                    }
+                    else
+                    {
+                        <td>@usl.UName @usl.USurname</td>
+                    }
+                }
+            }
+            <td>
+                <a href="/RequestList/RequestDetails/@aktiftalep.RequestID" class="m-portlet__nav-link btn m-btn m-btn--hover-brand m-btn--icon m-btn--icon-only m-btn--pill" title="Detaylar">
+                    <i class="fa flaticon-list"></i>
+                </a>
+            </td>
+        </tr>
+                    }
+                }
+            }
+            else if (userole == 2)
+            {
+                foreach (Requests aktiftalep in Model)
+                {
+                    if (aktiftalep.reqCompany.CompanyID == compid && (aktiftalep.reqStatus.StatusID != 6 && aktiftalep.reqStatus.StatusID != 7))
+                    {
+        <tr>
+            <td>#@aktiftalep.RequestNumber#</td>
+            <td>@aktiftalep.RequestDate</td>
+            <td>@aktiftalep.reqCompany.CompanyName</td>
+            <td>@aktiftalep.reqUser.UName @aktiftalep.reqUser.USurname</td>
+            <td>@aktiftalep.reqType.RequestTypeTitle</td>
+        @if (aktiftalep.RequestDescription.Length > 50)
+        {
+            <td><span title="@aktiftalep.RequestDescription">@aktiftalep.RequestDescription.Substring(0, 50) ...</span></td>
+        }
+            else
+            {
+                <td><span title="@aktiftalep.RequestDescription">@aktiftalep.RequestDescription</span></td>
+            }
+
+            @foreach (CommentStatus cs in comstat)
+            {
+                if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+            }
+            @foreach (Users usl in userslist)
+            {
+                if (usl.UserID == aktiftalep.RequestAttendant)
+                {
+                    if (usl.UserID == 19)
+                    {
+                        <td><span class="m--font-boldest">@usl.UName @usl.USurname</span></td>
+                    }
+                    else
+                    {
+                        <td>@usl.UName @usl.USurname</td>
+                    }
+                }
+            }
+            <td>
+                <a href="/RequestList/RequestDetails/@aktiftalep.RequestID" class="m-portlet__nav-link btn m-btn m-btn--hover-brand m-btn--icon m-btn--icon-only m-btn--pill" title="Detaylar">
+                    <i class="fa flaticon-list"></i>
+                </a>
+            </td>
+        </tr>
+                    }
+                }
+            }
+            else if (userole == 3)
+            {
+                foreach (Requests aktiftalep in Model)
+                {
+                    if (aktiftalep.reqUser.UserID != 1 || adminparam > 0)
+                    {
+                        if ((aktiftalep.RequestAttendant != 1 || adminparam > 0) && (aktiftalep.RequestAttendant == 19 && aktiftalep.AssignmentStatus == 0) && (aktiftalep.reqStatus.StatusID != 6 && aktiftalep.reqStatus.StatusID != 7))
+                        {
+        <tr>
+            <td>#@aktiftalep.RequestNumber#</td>
+            <td>@aktiftalep.RequestDate</td>
+            <td>@aktiftalep.reqCompany.CompanyName</td>
+            <td>@aktiftalep.reqUser.UName @aktiftalep.reqUser.USurname</td>
+            <td>@aktiftalep.reqType.RequestTypeTitle</td>
+        @if (aktiftalep.RequestDescription.Length > 50)
+        {
+            <td><span title="@aktiftalep.RequestDescription">@aktiftalep.RequestDescription.Substring(0, 50) ...</span></td>
+        }
+        else
+            {
+                <td><span title="@aktiftalep.RequestDescription">@aktiftalep.RequestDescription</span></td>
+            }
+
+            @foreach (CommentStatus cs in comstat)
+            {
+                if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+            }
+            @foreach (Users usl in userslist)
+            {
+                if (usl.UserID == aktiftalep.RequestAttendant)
+                {
+                    if (usl.UserID == 19)
+                    {
+                        <td><span class="m--font-boldest">@usl.UName @usl.USurname</span></td>
+                    }
+                    else
+                    {
+                        <td>@usl.UName @usl.USurname</td>
+                    }
+                }
+            }
+            <td>
+                <a href="/RequestList/RequestDetails/@aktiftalep.RequestID" class="m-portlet__nav-link btn m-btn m-btn--hover-brand m-btn--icon m-btn--icon-only m-btn--pill" title="Detaylar">
+                    <i class="fa flaticon-list"></i>
+                </a>
+                @if (aktiftalep.reqStatus.StatusID != 6 && aktiftalep.reqStatus.StatusID != 7)
+                {
+                    if (aktiftalep.RequestAttendant == loggedusername || userole >= 4)
+                    {
+                        <a href="#" class="m-portlet__nav-link btn m-btn m-btn--hover-danger m-btn--icon m-btn--icon-only m-btn--pill" data-toggle="modal" data-target="#m_modal_4" data-request-id="@aktiftalep.RequestID" title="Yorum/Kapat">
+                            <i class="flaticon flaticon-settings "></i>
+                        </a>
+                    }
+                }
+                @foreach (AttendantParameter atp in ap)
+                {
+                    if (!String.IsNullOrEmpty(atp.AdminAttendantEnable.ToString()) && atp.AdminAttendantEnable != 0)
+                    {
+                        <a href="#" class="m-portlet__nav-link btn m-btn m-btn--hover-success m-btn--icon m-btn--icon-only m-btn--pill" data-toggle="modal" data-target="#m_modal_4_takerequest" data-request-take-id="@aktiftalep.RequestID" title="Görevi Al">
+                            <i class="fa fa-check"></i>
+                        </a>
+                    }
+                }
+                @if (aktiftalep.RequestAttendant == 19)
+                {
+                    <a href="#" class="m-portlet__nav-link btn m-btn m-btn--hover-success m-btn--icon m-btn--icon-only m-btn--pill" data-toggle="modal" data-target="#m_modal_4_takerequest" data-request-take-id="@aktiftalep.RequestID" title="Görevi Al">
+                        <i class="fa fa-check"></i>
+                    </a>
+                }
+
+            </td>
+        </tr>
+                        }
+                    }
+                }
+            }
+            else if (userole >= 4)
+            {
+                foreach (Requests aktiftalep in Model)
+                {
+                    if ((aktiftalep.reqStatus.StatusID != 6 && aktiftalep.reqStatus.StatusID != 7) && (aktiftalep.RequestAttendant == 19 && aktiftalep.AssignmentStatus == 0))
+                    {
+        <tr>
+            <td>#@aktiftalep.RequestNumber#</td>
+            <td>@aktiftalep.RequestDate</td>
+            <td>@aktiftalep.reqCompany.CompanyName</td>
+            <td>@aktiftalep.reqUser.UName @aktiftalep.reqUser.USurname</td>
+            <td>@aktiftalep.reqType.RequestTypeTitle</td>
+            @if (aktiftalep.RequestDescription.Length > 50)
+            {
+                <td><span title="@aktiftalep.RequestDescription">@aktiftalep.RequestDescription.Substring(0, 50) ...</span></td>
+            }
+            else
+            {
+                <td><span title="@aktiftalep.RequestDescription">@aktiftalep.RequestDescription</span></td>
+            }
+
+            @foreach (CommentStatus cs in comstat)
+            {
+                if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 1 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 2 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 3 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--primary m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 4 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--info m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 5 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 6 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--danger m-badge--wide" style="color: white; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 1)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--accent m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 2)
+                {
+                    if (cs.CommentStatusID == 2)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--brand m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 3)
+                {
+                    if (cs.CommentStatusID == 3)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--warning m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 4)
+                {
+                    if (cs.CommentStatusID == 4)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--success m-badge--wide" style="color: white; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+                else if (aktiftalep.reqStatus.StatusID == 7 && aktiftalep.CommentStatusID == 5)
+                {
+                    if (cs.CommentStatusID == 5)
+                    {
+                        <td>
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-bottom: -10px" title="Hbs Durumu">@aktiftalep.reqStatus.StatusTitle</span>
+                            <hr />
+                            <span class="m-badge m-badge--metal m-badge--wide" style="color: black; margin-top: -10px" title="Kullanıcı Durumu">@cs.CommentStatusTitle</span>
+                        </td>
+                    }
+                }
+            }
+            @foreach (Users usl in userslist)
+            {
+                if (usl.UserID == aktiftalep.RequestAttendant)
+                {
+                    if (usl.UserID == 19)
+                    {
+                        <td><span class="m--font-boldest">@usl.UName @usl.USurname</span></td>
+                    }
+                    else
+                    {
+                        <td>@usl.UName @usl.USurname</td>
+                    }
+                }
+            }
+            <td>
+                <a href="/RequestList/RequestDetails/@aktiftalep.RequestID" class="m-portlet__nav-link btn m-btn m-btn--hover-brand m-btn--icon m-btn--icon-only m-btn--pill" title="Detaylar">
+                    <i class="fa flaticon-list"></i>
+                </a>
+                @if (aktiftalep.reqStatus.StatusID != 6 && aktiftalep.reqStatus.StatusID != 7)
+                {
+                    <a href="#" class="m-portlet__nav-link btn m-btn m-btn--hover-danger m-btn--icon m-btn--icon-only m-btn--pill" data-toggle="modal" data-target="#m_modal_4" data-request-id="@aktiftalep.RequestID" title="Yorum/Kapat">
+                        <i class="flaticon flaticon-settings"></i>
+                    </a>
+                }
+                <a href="#" class="m-portlet__nav-link btn m-btn m-btn--hover-success m-btn--icon m-btn--icon-only m-btn--pill" data-toggle="modal" data-target="#m_modal_4_takerequest" data-request-take-id="@aktiftalep.RequestID" title="Görevi Al">
+                    <i class="fa fa-check"></i>
+                </a>
+            </td>
+        </tr>
+                    }
+                }
+            }
+        }
+    }
+    </tbody>
+    </table>
+
+    <div class="modal fade" id="m_modal_4" name="m_modal_4" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header" id="m_modal_4_header">
+                    <h5 class="modal-title" id="exampleModalLabel">Talep Bilgilerini Düzenle</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="m_modal_4_body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="m_modal_4_takerequest" name="m_modal_4" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header" id="m_modal_4_takeRequest_header">
+                    <h5 class="modal-title" id="exampleModalLabel">Görevlendirme</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="m_modal_4_takeRequest_body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+}
+
+<script src="~/TODO_JS/RequestListFilter.js"></script>
+<script type="text/javascript" src="~/TODO_JS/RequestUpdate.js"></script>
+<script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/select2.js" type="text/javascript"></script>
+<script src="~/TODO_JS/RequestCompanyFilter.js"></script>
+<script src="~/TODO_JS/RequestAttendantList.js"></script>
+
+
+<script type="text/javascript" src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/bootstrap-datepicker.tr.min.js" charset="UTF-8"></script>
+@*<script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/bootstrap-daterangepicker.js" type="text/javascript"></script>*@
+<script src="~/Content/assets/demo/demo12/custom/crud/metronic-datatable/base/html-table.js" type="text/javascript"></script>
+<script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/bootstrap-datepicker.js" type="text/javascript"></script>

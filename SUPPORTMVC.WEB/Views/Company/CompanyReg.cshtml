@@ -1,0 +1,122 @@
+﻿@using SUPPORTMVC.ENTITIES.DBTO
+@using SUPPORTMVC.ENTITIES.DBT
+@using SUPPORTMVC.BLL
+@{
+    ViewBag.Title = "CompanyReg";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model CompanyAddModel
+
+<div class="m-portlet">
+    <div class="m-portlet__head">
+        <div class="m-portlet__head-caption">
+            <div class="m-portlet__head-title">
+                <h3 class="m-portlet__head-text col-md-12">
+                    Firma Kaydı Oluştur
+                </h3>
+            </div>
+        </div>
+    </div>
+    @if (ViewData.ModelState.Keys.Any(k => ViewData.ModelState[k].Errors.Any()))
+    {
+        <div class="m-portlet__body">
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder"></label>
+                <div class="col-md-4">
+                    <div class="m-alert m-alert--icon m-alert--icon-solid m-alert--outline alert alert-danger alert-dismissible fade show" role="alert" id="alertmsg">
+                        <div class="m-alert__icon">
+                            <i class="flaticon-exclamation-1"></i>
+                            <span></span>
+                        </div>
+                        <div class="m-alert__text">
+                            @Html.ValidationSummary(false)
+                        </div>
+                        <div class="m-alert__close">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @using (Html.BeginForm("CompanyReg", "Company", FormMethod.Post, new { @class = "m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed" }))
+    {
+        <div class="m-portlet__body">
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">Firma Kodu:</label>
+                <div class="col-md-4">
+                    @Html.TextBoxFor(model => model.CompanyCode, new { @class = "form-control m-input m--font-boldest2", type = "text", maxlength = "30", id = "txtfirmakayitkodu" })
+                </div>
+            </div>
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">Firma Adı:</label>
+                <div class="col-md-4">
+                    @Html.TextBoxFor(model => model.CompanyName, new { @class = "form-control m-input m--font-boldest2", type = "text", maxlength = "200", id = "txtfirmakayitadi" })
+                </div>
+            </div>
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">İş Telefon:</label>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <div class="input-group-prepend"><span class="input-group-text"><i class="la la-phone"></i></span></div>
+                        @Html.TextBoxFor(model => model.CompanyOfficePhone, new { @class = "form-control m-input m--font-boldest2", type = "text", maxlength = "40", id = "txtfirmakayitistel", placeholder = "(0212)999-9999" })
+
+                    </div>
+                </div>
+            </div>
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">Cep Telefon:</label>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <div class="input-group-prepend"><span class="input-group-text"><i class="la la-mobile-phone"></i></span></div>
+                        @Html.TextBoxFor(model => model.CompanyMobilePhone, new { @class = "form-control m-input m--font-boldest2", type = "text", maxlength = "40", id = "txtfirmakayitceptel", placeholder = "(0535)999-9999" })
+                    </div>
+                </div>
+                </div>
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">Firma Email:</label>
+                <div class="col-md-4">
+                    @Html.TextBoxFor(model => model.CompanyEmail, new { @class = "form-control m-input m--font-boldest2", type = "email", maxlength = "200", id = "txtfirmakayitemail" })
+                </div>
+            </div>
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">Firma Domain:</label>
+                <div class="col-md-4">
+                    @Html.TextBoxFor(model => model.CompanyDomain, new { @class = "form-control m-input m--font-boldest2", type = "text", maxlength = "200", id = "txtfirmakayitdomain" })
+                </div>
+            </div>
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder" style="font-size: 1.3rem"> <i class="flaticon-avatar"></i> Yetkili Kişi Bilgileri</label>
+                <div class="col-md-4">
+
+                </div>
+            </div>
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">Ad:</label>
+                <div class="col-md-4">
+                    @Html.TextBoxFor(model => model.CompanyAuthName, new { @class = "form-control m-input m--font-boldest2", type = "text", maxlength = "40", id = "txtfirmakayityetkiliad" })
+
+                </div>
+            </div>
+            <div class="m-form__group form-group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">Soyad:</label>
+                <div class="col-md-4">
+                    @Html.TextBoxFor(model => model.CompanyAuthSurname, new { @class = "form-control m-input m--font-boldest2", type = "text", maxlength = "50", id = "txtfirmakayityetkilisoyad" })
+                </div>
+            </div>
+            <div class="m-portlet__foot m-portlet__no-border m-portlet__foot--fit">
+                <div class="m-form__actions ">
+                    <div class="row">
+                        <div class="col-lg-2"></div>
+                        <div class="col-lg-6">
+                            <button type="submit" class="btn btn-info m--font-bolder" id="btnfirmakayit">Kaydet</button>
+                            <button type="reset" class="btn btn-outline-info m--font-bolder" id="btnfirmaiptal">Iptal</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+

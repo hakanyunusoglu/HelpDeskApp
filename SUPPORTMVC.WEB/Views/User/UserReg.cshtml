@@ -1,0 +1,191 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@using SUPPORTMVC.ENTITIES.DBTO
+
+@model  UserAddModel
+@{
+
+    ViewBag.Title = "HBSoft Kullanıcı Kayıt";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    CompanyManager cp = new CompanyManager();
+    List<Companies> cpList = cp.GetCompanyList();
+
+    UserManager um = new UserManager();
+    List<Users> userslist = um.GetUsers();
+}
+@if(Session["User"] != null)
+{
+    int loggedusername = SUPPORTMVC.COMMON.App.Common.GetUserID().Value;
+    int userole;
+    int compid;
+
+<script>
+    function sifremigoster() {
+        var element = document.getElementById('txtkayitsifre');
+        element.type = (element.type == 'password' ? 'text' : 'password');
+    }
+</script>
+
+    <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title">
+                    <h3 class="m-portlet__head-text col-md-12">
+                        Kullanıcı Kaydı Oluştur
+                    </h3>
+                </div>
+            </div>
+        </div>
+        @if (ViewData.ModelState.Keys.Any(k => ViewData.ModelState[k].Errors.Any()))
+        {
+            <div class="m-portlet__body">
+                <div class="form-group m-form__group row">
+                    <label class="col-lg-2 col-form-label m--font-bolder"></label>
+                    <div class="col-md-4">
+                        <div class="m-alert m-alert--icon m-alert--icon-solid m-alert--outline alert alert-danger alert-dismissible fade show" role="alert" id="alertmsg">
+                            <div class="m-alert__icon">
+                                <i class="flaticon-exclamation-1"></i>
+                                <span></span>
+                            </div>
+                            <div class="m-alert__text">
+                                @Html.ValidationSummary(false)
+                            </div>
+                            <div class="m-alert__close">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @using (Html.BeginForm("UserReg", "User", FormMethod.Post, new {enctype = "multipart/form-data", @class = "m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed"}))
+        {
+            <div class="m-portlet__body">
+                <div class="form-group m-form__group row">
+                    <label class="col-lg-2 col-form-label m--font-bolder">Kullanıcı Adı:</label>
+                    <div class="col-md-4">
+                        @Html.TextBoxFor(model => model.Username, new {@class = "form-control m--font-boldest2", type = "text", maxlength = "30", id = "txtkayitkullaniciadi"})
+                        @*<div class="form-control-feedback" id="valkuladi" style="margin-bottom: -20px; font-size: 1rem">Bu kullanıcı adı kullanılıyor!</div>*@
+                    </div>
+                </div>
+                <div class="form-group m-form__group row">
+                    <label class="col-lg-2 col-form-label m--font-bolder">Parola:</label>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            @Html.TextBoxFor(model => model.Password, new {@class = "form-control m--font-boldest2", type = "password", maxlength = "30", id = "txtkayitsifre"})
+                            <div class="input-group-prepend" id="profilsifregoster" onclick="sifremigoster()"><span class="input-group-text"><i class="la la-eye"></i></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group m-form__group row">
+                    <label class="col-lg-2 col-form-label m--font-bolder">Ad:</label>
+                    <div class="col-md-4">
+                        @Html.TextBoxFor(model => model.UName, new {@class = "form-control m--font-boldest2", type = "text", maxlength = "30", id = "txtkayitad"})
+                    </div>
+                </div>
+                <div class="form-group m-form__group row">
+                    <label class="col-lg-2 col-form-label m--font-bolder">Soyad:</label>
+                    <div class="col-md-4">
+                        @Html.TextBoxFor(model => model.USurname, new {@class = "form-control m--font-boldest2", type = "text", maxlength = "50", id = "txtkayitsoyad"})
+                    </div>
+                </div>
+                <div class="form-group m-form__group row">
+                    <label class="col-lg-2 col-form-label m--font-bolder">E-Mail:</label>
+                    <div class="col-md-4">
+                        @Html.TextBoxFor(model => model.Email, new {@class = "form-control m--font-boldest2", type = "text", maxlength = "150", id = "txtkayitemail"})
+                    </div>
+                </div>
+                <div class="form-group m-form__group row">
+                    <label class="col-lg-2 col-form-label m--font-bolder">Firma Adı:</label>
+                    <div class="col-md-4">
+
+                        <select class="form-control m-select2 m--font-boldest2" id="m_select2_1" name="CompanyID">
+                            <option value=""> </option>
+                            @foreach (Companies cpl in cpList)
+                            {
+                                <option value="@cpl.CompanyID">@cpl.CompanyName </option>
+                            }
+                        </select>
+
+                    </div>
+                </div>
+                <div class="m-form__group form-group row">
+                    <label class="col-lg-2 col-form-label m--font-bolder">Yetkili:</label>
+                    <div class="col-sm-1">
+                        <span class="m-switch m-switch--lg m-switch--icon">
+                            <label>
+
+                                @Html.CheckBoxFor(model => model.Authorized)
+                                @*<input type="checkbox" name="Authorized" id="Authorized" value="0"/>*@
+
+                                <span></span>
+                            </label>
+                        </span>
+                    </div>
+                    <label class="col-sm-1 col-form-label m--font-bolder">Giriş Yetkisi:</label>
+                    <div class="col-sm-1">
+                        <span class="m-switch m-switch--lg m-switch--icon">
+                            <label>
+                                @Html.CheckBoxFor(model => model.LoginAuthorized)
+                                @*<input type="checkbox" name="LoginAuthorized" id="chckkayitgirisyetkisi" value="0"/>*@
+
+                                <span></span>
+                            </label>
+                        </span>
+                    </div>
+                    <label class="col-sm-1 col-form-label m--font-bolder">Kullanıcı Tipi:</label>
+                    <div class="col-sm-2">
+                        <span class="m-switch m-switch--lg m-switch--icon"></span>
+                        <label>
+                            <select class="form-control m-input m--font-boldest2" name="RoleID" id="RoleID">
+                                <option value="0" disabled selected hidden>Seçiniz</option>
+
+                                @foreach (Users loggeduserinfo in userslist)
+                                {
+                                    if (Convert.ToInt32(loggedusername) == loggeduserinfo.UserID)
+                                    {
+                                        userole = loggeduserinfo.RoleID;
+                                        compid = loggeduserinfo.CompanyID;
+                                        if (userole == 3)
+                                        {
+                                            <option value="1">Standart Kullanıcı</option>
+                                            <option value="2">Firma Yetkilisi</option>
+                                        }
+                                        else if (userole >= 4)
+                                        {
+                                            <option value="1">Standart Kullanıcı</option>
+                                            <option value="2">Firma Yetkilisi</option>
+                                            <option value="3">HBS Kullanıcı</option>
+                                            <option value="4">HBS Yetkilisi</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            <span></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="m-portlet__foot m-portlet__no-border m-portlet__foot--fit">
+                    <div class="m-form__actions">
+                        <div class="row">
+                            <div class="col-lg-2"></div>
+                            <div class="col-lg-6">
+                                <button type="submit" class="btn btn-info m--font-bolder" id="btnkaydet">Kaydet</button>
+                                <button type="reset" class="btn btn-outline-info m--font-bolder" id="btnkayitiptal">Iptal</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+        <script src="~/Content/assets/demo/demo12/custom/components/base/sweetalert2.js" type="text/javascript"></script>
+        <script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/bootstrap-maxlength.js" type="text/javascript"></script>
+        <script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/select2.js" type="text/javascript"></script>
+
+
+

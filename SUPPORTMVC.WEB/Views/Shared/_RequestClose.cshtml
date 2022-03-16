@@ -1,0 +1,92 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@model Requests
+@{
+    RequestManager rm = new RequestManager();
+    List<CommentStatus> csList = rm.GetCommentStatus();
+    List<RequestPriority> rp = rm.GetReqPrioList();
+}
+<form>
+    <div class="form-group m-form__group row align-items-center">
+        <label class="col-lg-2 col-form-label m--font-bolder"> Talep Durumu:</label>
+        <div class="col-md-4">
+            @foreach (CommentStatus cs in csList)
+            {
+                if (Model.CommentStatusID == cs.CommentStatusID)
+                {
+                    if (cs.CommentStatusID == 1)
+                    {
+                        <button type="button" class="btn m-btn--square btn-accent font-white m--font-bolder">@Html.DisplayFor(model => cs.CommentStatusTitle)</button>
+                    }
+                    else if (cs.CommentStatusID == 2)
+                    {
+                        <button type="button" class="btn m-btn--square btn-info font-white m--font-bolder">@Html.DisplayFor(model => cs.CommentStatusTitle)</button>
+                    }
+                    else if (cs.CommentStatusID == 3)
+                    {
+                        <button type="button" class="btn m-btn--square btn-warning m--font-bolder">@Html.DisplayFor(model => cs.CommentStatusTitle)</button>
+                    }
+                    else if (cs.CommentStatusID == 4)
+                    {
+                        <button type="button" class="btn m-btn--square btn-success font-white m--font-bolder">@Html.DisplayFor(model => cs.CommentStatusTitle)</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn m-btn--square btn-metal font-white m--font-bolder">@Html.DisplayFor(model => cs.CommentStatusTitle)</button>
+                    }
+                }
+            }
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder">Sorun Detayı:</label>
+        <br />
+        <div class="col-lg-10">
+            <textarea class="form-control m--font-boldest2" id="m_autosize_1" rows="7" readonly="readonly">@Model.RequestDescription</textarea>
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <div class="col-lg-12">
+            <hr />
+            <h5 class="modal-title m--margin-left-10" id="exampleModalClose">Kapatma Bilgileri</h5>
+            <hr />
+        </div>
+    </div>
+        <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder">Talep Önceliği:</label>
+                <div class=" col-md-3">
+                    <select class="form-control m-input m--font-boldest2" id="ComReqPrio">
+                        <option value="" selected disabled>Seçiniz</option>
+                        @foreach (RequestPriority rpl in rp)
+                        {
+                            if(rpl.PriorityID != Model.reqPriority.PriorityID)
+                            { 
+                                <option value="@rpl.PriorityID">@rpl.PriorityTitle</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <label class="col-lg-1 col-form-label m--font-bolder"> Süre:</label>
+                <div class="col-md-2">
+                    <input type="text" class="form-control m-input m--font-boldest2" id="CloseMinute"/>
+                </div>
+                <label class="col-lg-1 col-form-label m--font-bolder"> Durumu:</label>
+                <div class="col-md-3">
+                    <select class="form-control m-input m--font-boldest2" id="reqStatus">
+                        
+                    </select>
+                </div>
+        </div>
+        <div class="form-group m-form__group row">
+            <label class="col-lg-2 col-form-label m--font-bolder"> Açıklama Ekle:</label>
+                <div class="col-md-10">
+                    <textarea class="form-control m--font-boldest2" id="m_autosize_1_kapat" rows="6"></textarea>
+                </div>
+        </div>
+        <hr />
+        @Html.HiddenFor(x => Model.RequestID)
+        <div class="form-group m-form__group row float-right m--margin-right-65 m--margin-top-5" style="margin-bottom: -1%">
+            <button type="button" id="reqUpdateButton" class="btn btn-info m--font-boldest" style="width: 10rem" onclick="CloseRequest(this,'requestClose');"> Güncelle </button>
+        </div>
+</form>
+<script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/autosize.js" type="text/javascript"></script>

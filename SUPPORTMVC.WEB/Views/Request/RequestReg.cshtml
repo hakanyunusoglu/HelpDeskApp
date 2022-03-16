@@ -1,0 +1,290 @@
+﻿@using SUPPORTMVC.ENTITIES.DBTO
+@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@using SUPPORTMVC.COMMON
+@model RequestAddModel
+@{
+    ViewBag.Title = "RequestReg";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    RequestManager rm = new RequestManager();
+
+    List<RequestType> reqTypeList = rm.GetReqTypeList();
+    List<RequestPriority> reqprio = rm.GetReqPrioList();
+    List<RequestStatus> rqs = rm.GetReqStatus();
+    List<Users> usrList = rm.GetReqUser();
+    int loggeduser = 0;
+}
+@if(Session["User"] != null)
+{
+    loggeduser = SUPPORTMVC.COMMON.App.Common.GetUserID().Value;
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#NewRequestCloseDiv').hide();
+        var ckbox = $('#ShowNewRequetCloseBody');
+
+        $('input').on('click',
+            function() {
+                if (ckbox.is(':checked')) {
+                    $('#NewRequestCloseDiv').fadeIn(900);
+                } else {
+                    $('#NewRequestCloseDiv').fadeOut(400);
+                }
+            });
+    });
+    
+</script>
+    <form id="newrequestform">
+    <div class="m-portlet">
+    @if (ViewData.ModelState.Keys.Any(k => ViewData.ModelState[k].Errors.Any()))
+    {
+        <div class="m-portlet__body">
+            <div class="form-group m-form__group row">
+                <label class="col-lg-2 col-form-label m--font-bolder"></label>
+                <div class="col-md-4">
+                    <div class="m-alert m-alert--icon m-alert--icon-solid m-alert--outline alert alert-danger alert-dismissible fade show" role="alert" id="alertmsg">
+                        <div class="m-alert__icon">
+                            <i class="flaticon-exclamation-1"></i>
+                            <span></span>
+                        </div>
+                        <div class="m-alert__text">
+                            @Html.ValidationSummary(false)
+                        </div>
+                        <div class="m-alert__close">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    @Html.HiddenFor(model => model.RequestID)
+
+    <div class="m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed ">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title col-md-12">
+                    <div class="col-md-4">
+                        <h3 class="m-portlet__head-text">
+                            Talep Kaydı Oluştur
+                        </h3>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="@Url.Action("RequestList", "RequestList")" class="btn btn-outline-info m--font-bolder m--align-right">
+                            <i class="fa fa-bars">&nbsp;</i>
+                            Talep Listesi
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="#" class="btn btn-outline-info m--font-bolder m--align-right" data-toggle="modal" data-target="#m_modal_4" title="Yeni Kullanıcı Oluştur">
+                            <i class="fa fa-plus-circle">&nbsp;</i>
+                            Yeni Kullanıcı Oluştur
+                        </a>
+                    </div>
+                    @foreach (Users usr in usrList)
+                    {
+                        if (usr.UserID == loggeduser)
+                        {
+                            if (usr.RoleID >= 3)
+                            {
+                                <div class="col-md-3">
+                                    <span class="m-switch m-switch--outline m-switch--success">
+                                        <label>
+                                            <input type="checkbox" id="ShowNewRequetCloseBody">
+                                            <span></span>
+                                        </label>
+                                    </span>
+                                </div>
+                            }
+                        }
+                    }
+
+                </div>
+            </div>
+        </div>
+        <div class="form-group m-form__group row">
+            <label class="col-lg-1 col-form-label m--font-bolder">Tarih:</label>
+            <div class="col-md-3">
+                <div class="input-group date">
+                    @foreach (Users usr in usrList)
+                    {
+                        if (usr.UserID == loggeduser)
+                        {
+                            if (usr.RoleID < 3)
+                            {
+                                <input type="text" class="form-control m-input m--font-boldest2" readonly value="@DateTime.Now.ToShortDateString()" id="UserDatetime"/>
+                                <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="la la-calendar"></i>
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="text" class="form-control m-input m--font-boldest2"  placeholder="Tarih seçiniz" id="m_datepicker_3"/>
+                                <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="la la-calendar"></i>
+                                    </span>
+                                </div>
+                            }
+                        }
+                    }
+                                
+                </div>
+            </div>
+            <label class="col-lg-2 col-form-label m--font-bolder">Firma Adı:</label>
+            <div class="col-md-5">
+                <select class="form-control m-select2 m--font-boldest2" id="m_select2_1" name="reqCompany">
+                    <option value="0" selected disabled hidden>Firma seçiniz</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group m-form__group row">
+            <label class="col-lg-1 col-form-label m--font-bolder">Talep Sahibi:</label>
+            <div class="col-md-3">
+                <select class="form-control m-input m--font-boldest2" id="m_form_TalepSahibi" name="ReqUser">
+                    <option value="0" disabled hidden> Seçiniz </option>
+                </select>
+            </div>
+            <label class="col-lg-2 col-form-label m--font-bolder">Öncelik:</label>
+            <div class="col-md-3">
+                <select class="form-control m-input m--font-boldest2" id="txttaleponcelik" name="reqPriority">
+                    <option value="0" disabled selected hidden>Seçiniz</option>
+                    @foreach (RequestPriority rqp in reqprio)
+                    {
+                        <option value="@rqp.PriorityID">@rqp.PriorityTitle</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group m-form__group row">
+            <label class="col-lg-1 col-form-label m--font-bolder">Talep Türü:</label>
+            <div class="col-md-3">
+                <select class="form-control m-input m--font-boldest2" id="RequestType" name="RequestType">
+                    <option value="0" selected disabled hidden> Seçiniz </option>
+                    @foreach (RequestType typlist in reqTypeList)
+                    {
+                        <option value="@typlist.RequestTypeID">@typlist.RequestTypeTitle</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group m-form__group row">
+            <label class="col-lg-1 col-form-label m--font-bolder">Dosya Ekle:</label>
+            <div class="col-md-3">
+                <input type="file" multiple="multiple" name="NewRequestFiles" id="NewRequestFiles"/> <br/>
+                <span class="m-form__help m--font-danger" style="font-size: 12px"><i class="la la-info-circle"></i> Dosya boyutu en fazla 5 MB olabilir!</span>
+            </div>
+        </div>
+        <div class="form-group m-form__group row">
+            <label class="col-lg-1 col-form-label m--font-bolder">Açıklama:</label>
+            <div class="col-lg-8 col-md-9 col-sm-12">
+                <textarea class="form-control m--font-boldest2" id="m_autosize_1" rows="12"></textarea>
+                @*@Html.TextAreaFor(model => model.RequestDescription, new {@class = "form-control m--font-boldest2", id = "m_autosize_1", rows = "15"})*@
+            </div>
+        </div>
+        <div class="form-group m-form__group row" id="NewRequestCloseDiv">
+            <div class="col-md-12">
+                <div class="m-portlet m-portlet--head-sm" m-portlet="true" id="m_portlet_tools_3">
+                    <div class="m-portlet__head">
+                        <div class="m-portlet__head-caption col-xl-8">
+                            <div class="m-portlet__head-title">
+                                <span class="m-portlet__head-icon">
+                                    <i class="flaticon-close"></i>
+                                </span>
+                                <h3 class="m-portlet__head-text">
+                                    Talep Kapatma Bilgileri
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="m-portlet__head-tools">
+                            <ul class="m-portlet__nav">
+                                <li class="m-portlet__nav-item">
+                                    <a href="#" m-portlet-tool="toggle" class="m-portlet__nav-link m-portlet__nav-link--icon"><i class="la la-angle-down"></i></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group row">
+                            <div class="col-md-2">
+                                <label class="col-lg-2 col-form-label m--font-bolder">Durum</label>
+                                <div class="col-md-10">
+                                    <select class="form-control m-input m--font-boldest2" id="reqStatus">
+                                        <option value="0" selected="selected" disabled="disabled">Seçiniz</option>
+                                        @foreach (RequestStatus rs in rqs)
+                                        {
+                                            if (rs.StatusID == 6 || rs.StatusID == 7)
+                                            {
+                                                <option value="@rs.StatusID">@rs.StatusTitle</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="col-lg-2 col-form-label m--font-bolder">Süre</label>
+                                <div class="col-md-12">
+                                    <input type="text" class="form-control m-input m--font-boldest2 col-md-4" id="CommentTotalTime"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <div class="col-md-12">
+                                <label class="col-lg-2 col-form-label m--font-bolder">Kapatma Açıklaması</label>
+                                <div class="col-lg-8 col-md-9 col-sm-12">
+                                    <textarea class="form-control m--font-boldest2" id="m_autosize_1_reqdesc" rows="10"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="m-portlet__foot m-portlet__no-border m-portlet__foot--fit">
+            <div class="m-form__actions ">
+                <div class="row">
+                    <div class="col-lg-1"></div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-info m--font-bolder" id="btntalepkayit" onclick="NewRequestAdd(this, 'AddNewRequest');" title="Talep oluşturulduktan sonra tüm bilgiler silinir!">Kaydet-Yeni</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-info m--font-bolder" id="btntalepkayit" onclick="NewRequestAddReproduce(this, 'AddNewRequestReproduce');" title="Talep oluşturulduktan sonra sadece 'Açıklama' alanı silinecektir!">Kaydet-Yeni(Talepten Türet)</button>
+                    </div>
+                    <div class="col-md-1">
+                        @Html.ActionLink("Temizle", "Temizle", "Request", new { @class = "btn btn-outline-info m--font-bolder", onclick = "return confirm('Girmiş olduğunuz tüm bilgiler silinecek! Formu temizlemek istiyor musunuz?')" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>          
+    </div>
+    </form>
+    
+    <div class="modal fade" id="m_modal_4" name="m_modal_4" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header" id="m_modal_4_header">
+                    <h5 class="modal-title" id="exampleModalLabel">Yeni Kullanıcı Oluştur</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="m_modal_4_body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+<script src="~/TODO_JS/NewRequest.js"></script>
+<script src="~/TODO_JS/RequestListFilter.js"></script>
+<script src="~/TODO_JS/RequestCompanyFilter.js"></script>
+<script src="~/TODO_JS/QuickNewUserModal.js"></script>
+
+<script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/autosize.js" type="text/javascript"></script>
+<script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/select2.js" type="text/javascript"></script>
+<script src="~/Content/assets/demo/demo12/custom/crud/forms/widgets/bootstrap-datepicker.js" type="text/javascript"></script>

@@ -1,0 +1,74 @@
+﻿@using SUPPORTMVC.BLL
+@using SUPPORTMVC.ENTITIES.DBT
+@model Users
+
+<script>
+    function sifremigoster() {
+        var element = document.getElementById('Password');
+        element.type = (element.type == 'password' ? 'text' : 'password');
+    }
+</script>
+<form>
+    <div class="form-group m-form__group row" style="margin-top: -1rem">
+        <div class="col-md-12">
+            <span class="m-form__help m--font-danger" style="font-size: 1.1rem"> <b>1</b>: Standart Kullanıcı, &nbsp; <b>2</b>: Firma Yetkilisi,&nbsp; <b>3</b>: HBS Kullanıcı, &nbsp; <b>4</b>: HBS Yetkilisi</span>
+        </div>
+    </div>
+    <hr />
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder"> Kullanıcı Adı:</label>
+        <div class="col-md-3">
+            <input type="text" class="form-control m-input m--font-boldest2" id="Username" value="@Model.Username" />
+        </div>
+        <label class="col-lg-1 col-form-label m--font-bolder"> Şifre:</label>
+        <div class="col-md-4">
+            <div class="input-group">
+                <input type="password" class="form-control m-input m--font-boldest2" id="Password" name="Password" value="@Model.Password" />
+                <div class="input-group-prepend" id="profilsifregoster" onclick="sifremigoster()"><span class="input-group-text"><i class="la la-eye"></i></span></div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder"> Adı:</label>
+        <div class="col-md-3">
+            <input type="text" class="form-control m-input m--font-boldest2" id="UName" value="@Model.UName" />
+        </div>
+        <label class="col-lg-1 col-form-label m--font-bolder"> Soyadı:</label>
+        <div class="col-md-4">
+            <input type="text" class="form-control m-input m--font-boldest2" id="USurname" value="@Model.USurname" />
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder"> E-Mail:</label>
+        <div class="col-md-8">
+            <input type="text" class="form-control m-input m--font-boldest2" id="Email" value="@Model.Email" />
+        </div>
+    </div>
+    <div class="form-group m-form__group row">
+        <label class="col-lg-2 col-form-label m--font-bolder"> Kullanıcı Rolü:</label>
+        <div class="col-md-2">
+            <input type="text" class="form-control m-input m--font-boldest2" id="RoleID" value="@Model.RoleID" />
+        </div>
+        <label class="col-lg-2 col-form-label m--font-bolder"> Aktif:</label>
+        <div class="col-md-2">
+            <span class="m-switch m-switch--lg m-switch--icon">
+                <label>
+                    @if (Model.IsActive == true)
+                    {
+                        @Html.CheckBoxFor(model => model.IsActive, htmlAttributes: new { @checked = true })
+                    }
+                    else
+                    {
+                        @Html.CheckBoxFor(model => model.IsActive, htmlAttributes: new { @checked = false})
+                    }
+                    <span></span>
+                </label>
+            </span>
+        </div>
+    </div>
+    <hr />
+    @Html.HiddenFor(x => Model.UserID)
+    <div class="form-group m-form__group row float-right m--margin-right-65 m--margin-top-5" style="margin-bottom: -1%">
+        <button type="button" id="userEditButton" class="btn btn-info m--font-boldest" style="width: 10rem" onclick="EditUser(this,'userEdit');"> Güncelle </button>
+    </div>
+</form>
